@@ -1,0 +1,14 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+
+---
+description: This is a list of the tech stack and programing languages the application will use. 
+---
+
+UV #for dependency management 
+Ruff #for linting
+Pydantic
+SQLAlchemy

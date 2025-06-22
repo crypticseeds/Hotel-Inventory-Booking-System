@@ -1,0 +1,1002 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+
+---
+description: This is a list of the tech stack and programing languages the application will use. 
+---
+
+Using uv with FastAPI
+FastAPI is a modern, high-performance Python web framework. You can use uv to manage your FastAPI project, including installing dependencies, managing environments, running FastAPI applications, and more.
+
+Note
+
+You can view the source code for this guide in the uv-fastapi-example repository.
+
+Migrating an existing FastAPI project
+As an example, consider the sample application defined in the FastAPI documentation, structured as follows:
+
+
+project
+└── app
+    ├── __init__.py
+    ├── main.py
+    ├── dependencies.py
+    ├── routers
+    │   ├── __init__.py
+    │   ├── items.py
+    │   └── users.py
+    └── internal
+        ├── __init__.py
+        └── admin.py
+To use uv with this application, inside the project directory run:
+
+
+uv init --app
+This creates a project with an application layout and a pyproject.toml file.
+
+Then, add a dependency on FastAPI:
+
+
+uv add fastapi --extra standard
+You should now have the following structure:
+
+
+project
+├── pyproject.toml
+└── app
+    ├── __init__.py
+    ├── main.py
+    ├── dependencies.py
+    ├── routers
+    │   ├── __init__.py
+    │   ├── items.py
+    │   └── users.py
+    └── internal
+        ├── __init__.py
+        └── admin.py
+And the contents of the pyproject.toml file should look something like this:
+
+pyproject.toml
+
+[project]
+name = "uv-fastapi-example"
+version = "0.1.0"
+description = "FastAPI project"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]",
+]
+From there, you can run the FastAPI application with:
+
+
+uv run fastapi dev
+uv run will automatically resolve and lock the project dependencies (i.e., create a uv.lock alongside the pyproject.toml), create a virtual environment, and run the command in that environment.
+
+Test the app by opening http://127.0.0.1:8000/?token=jessica in a web browser.
+
+Deployment
+To deploy the FastAPI application with Docker, you can use the following Dockerfile:
+
+Dockerfile
+
+FROM python:3.12-slim
+
+# Install uv.
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Copy the application into the container.
+COPY . /app
+
+# Install the application dependencies.
+WORKDIR /app
+RUN uv sync --frozen --no-cache
+
+# Run the application.
+CMD ["/app/.venv/bin/fastapi", "run", "app/main.py", "--port", "80", "--host", "0.0.0.0"]
+Build the Docker image with:
+
+
+docker build -t fastapi-app .
+Run the Docker container locally with:
+
+
+docker run -p 8000:80 fastapi-app
+
+----------------------------------------
+
+TITLE: Train Learner with One Cycle Policy
+DESCRIPTION: This code snippet shows how to train the Learner using the fit_one_cycle method. It initiates a single training cycle, which typically involves a learning rate schedule for efficient model optimization.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/45_collab.ipynb#_snippet_24
+
+LANGUAGE: python
+CODE:
+```
+learn.fit_one_cycle(1)
+```
+
+----------------------------------------
+
+TITLE: Prepare Fastai Preprocessed Data for External ML Models
+DESCRIPTION: This code snippet demonstrates how to extract the training and validation feature sets ('X_train', 'X_test') and their corresponding target variables ('y_train', 'y_test') from a 'TabularPandas' object. The data is prepared in a format suitable for direct input into external machine learning libraries like XGBoost or Random Forests.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/44_tutorial.tabular.ipynb#_snippet_19
+
+LANGUAGE: python
+CODE:
+```
+X_train, y_train = to.train.xs, to.train.ys.values.ravel()
+X_test, y_test = to.valid.xs, to.valid.ys.values.ravel()
+```
+
+----------------------------------------
+
+TITLE: Instantiate fastai Learner class
+DESCRIPTION: Initializes the `Learner` class, which ties together all components required for training. It takes `DataLoaders` (dls), the neural network model (`Net()`), a loss function (`F.nll_loss`), an optimizer function (`opt_func`), and evaluation metrics (`accuracy`) as arguments.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/examples/migrating_pytorch_verbose.ipynb#_snippet_16
+
+LANGUAGE: python
+CODE:
+```
+learn = Learner(dls, Net(), loss_func=F.nll_loss, opt_func=opt_func, metrics=accuracy)
+```
+
+----------------------------------------
+
+TITLE: Share fastai Learner to Hugging Face Hub
+DESCRIPTION: Uploads a trained fastai `Learner` object to a specified repository on the Hugging Face Hub. It requires a valid write token and a repository ID in the format "namespace/repo_name" to publish the model.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/74_huggingface.ipynb#_snippet_3
+
+LANGUAGE: python
+CODE:
+```
+from huggingface_hub import push_to_hub_fastai
+
+# repo_id = "YOUR_USERNAME/YOUR_LEARNER_NAME"
+repo_id = "espejelomar/identify-my-cat"
+
+push_to_hub_fastai(learner=learn, repo_id=repo_id)
+```
+
+----------------------------------------
+
+TITLE: Install/Upgrade fastai on Colab
+DESCRIPTION: Installs or upgrades the fastai library when running in a Google Colab environment. This ensures the latest version of fastai is available for use.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/12_optimizer.ipynb#_snippet_0
+
+LANGUAGE: python
+CODE:
+```
+! [ -e /content ] && pip install -Uqq fastai
+```
+
+----------------------------------------
+
+TITLE: Setup and Instantiate TabularPandas for Multi-Label Classification
+DESCRIPTION: This sequence defines the categorical and continuous column names, processing steps (`Categorify`, `FillMissing`, `Normalize`), and a random splitter for a tabular dataset. It then instantiates `TabularPandas`, a fastai class for handling tabular data, specifying 'target' as the dependent variable and using `MultiCategoryBlock()` for multi-label classification.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/40_tabular.core.ipynb#_snippet_100
+
+LANGUAGE: python
+CODE:
+```
+cat_names = ['workclass', 'education', 'marital-status', 'occupation', 'relationship', 'race']
+cont_names = ['age', 'fnlwgt', 'education-num']
+procs = [Categorify, FillMissing, Normalize]
+splits = RandomSplitter()(range_of(df_main))
+```
+
+LANGUAGE: python
+CODE:
+```
+%time to = TabularPandas(df_main, procs, cat_names, cont_names, y_names="target", y_block=MultiCategoryBlock(), splits=splits)
+```
+
+----------------------------------------
+
+TITLE: Define GradientAccumulation Callback
+DESCRIPTION: Implements a FastAI `Callback` for gradient accumulation, allowing gradients from multiple batches to be accumulated before a single weight update. This is useful for training with larger effective batch sizes than memory permits, improving stability and performance.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/18a_callback.training.ipynb#_snippet_4
+
+LANGUAGE: python
+CODE:
+```
+#|export
+class GradientAccumulation(Callback):
+    "Accumulate gradients before updating weights"
+    order,run_valid = MixedPrecision.order-4,False
+    def __init__(self, n_acc=32): store_attr()
+    def before_fit(self): self.count=0
+    def after_loss(self): self.learn.loss_grad /= self.n_acc/find_bs(self.learn.yb)
+    def before_step(self):
+        "Skip weight update if we have not seen enough items"
+        self.learn.loss_grad *= self.n_acc/find_bs(self.learn.yb) # log correct loss
+        self.count += find_bs(self.learn.yb)
+        if self.count<self.n_acc: raise CancelBatchException() # skip step/zero_grad
+        else: self.count=0
+```
+
+----------------------------------------
+
+TITLE: Initializing Fastai Learner for Language Model Training
+DESCRIPTION: This snippet initializes the fastai `Learner` object, which orchestrates the training process. It combines the data loaders (`dls`), the HuggingFace model, a flat cross-entropy loss function, the custom `DropOutput` callback, and perplexity as a metric. Mixed precision training (`to_fp16()`) is enabled for memory efficiency and speed.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/39_tutorial.transformers.ipynb#_snippet_27
+
+LANGUAGE: python
+CODE:
+```
+learn = Learner(dls, model, loss_func=CrossEntropyLossFlat(), cbs=[DropOutput], metrics=Perplexity()).to_fp16()
+```
+
+----------------------------------------
+
+TITLE: Import Core FastAI Modules and Scikit-learn Metrics
+DESCRIPTION: This snippet imports essential components from the FastAI library, including data utilities, optimizers, learners, and tabular functionalities. It also imports 'sklearn.metrics' for common evaluation metrics, setting up the necessary dependencies for a FastAI project.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/20_interpret.ipynb#_snippet_1
+
+LANGUAGE: python
+CODE:
+```
+from __future__ import annotations
+from fastai.data.all import *
+from fastai.optimizer import *
+from fastai.learner import *
+from fastai.tabular.core import *
+import sklearn.metrics as skm
+```
+
+----------------------------------------
+
+TITLE: Import Core fastai Modules
+DESCRIPTION: This Python snippet imports essential modules from the fastai library, including data utilities, optimizers, and learner functionalities. It sets up the necessary components for model training and data processing.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/13b_metrics.ipynb#_snippet_1
+
+LANGUAGE: python
+CODE:
+```
+#|export
+from __future__ import annotations
+from fastai.data.all import *
+from fastai.optimizer import *
+from fastai.learner import *
+```
+
+----------------------------------------
+
+TITLE: API Reference: fastai.interpret.ClassificationInterpretation Class
+DESCRIPTION: The `ClassificationInterpretation` class provides a suite of tools for analyzing and visualizing the performance of classification models. It extends the base `Interpretation` class to offer specific methods like confusion matrix generation, plotting, identifying most confused samples, and printing detailed classification reports.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/20_interpret.ipynb#_snippet_15
+
+LANGUAGE: APIDOC
+CODE:
+```
+class ClassificationInterpretation(Interpretation):
+  "Interpretation methods for classification models."
+
+  __init__(self, learn: Learner, dl: DataLoader, losses: TensorBase, act=None)
+    learn: Learner instance from which to interpret predictions.
+    dl: DataLoader to run inference over to get predictions and targets.
+    losses: TensorBase containing the losses calculated from `dl`.
+    act: Optional activation function to apply to model outputs for prediction.
+
+  confusion_matrix(self) -> np.ndarray
+    "Confusion matrix as an `np.ndarray`."
+    Calculates and returns the confusion matrix for the model's predictions on the provided DataLoader.
+    Returns: A NumPy array representing the confusion matrix.
+
+  plot_confusion_matrix(self, normalize: bool = False, title: str = 'Confusion matrix', cmap: str = "Blues", norm_dec: int = 2, plot_txt: bool = True, **kwargs)
+    "Plot the confusion matrix, with `title` and using `cmap`."
+    Plots the confusion matrix.
+    Parameters:
+      normalize: Whether to normalize occurrences by row (actual class sum). Defaults to False.
+      title: Title of the plot. Defaults to 'Confusion matrix'.
+      cmap: Colormap from matplotlib to use for the plot. Defaults to "Blues".
+      norm_dec: Number of decimal places for normalized occurrences displayed in the matrix. Defaults to 2.
+      plot_txt: Whether to display occurrence counts within the matrix cells. Defaults to True.
+      **kwargs: Additional keyword arguments passed to `matplotlib.pyplot.figure`.
+
+  most_confused(self, min_val=1) -> list[tuple[str, str, int]]
+    "Sorted descending largest non-diagonal entries of confusion matrix (actual, predicted, # occurrences"
+    Identifies and returns the most confused classes based on the confusion matrix.
+    Parameters:
+      min_val: Minimum number of occurrences for an entry to be included in the results. Defaults to 1.
+    Returns: A list of tuples, each containing (actual_class_name, predicted_class_name, number_of_occurrences), sorted in descending order by occurrences.
+
+  print_classification_report(self)
+    "Print scikit-learn classification report"
+    Prints a detailed classification report using scikit-learn's `classification_report`, including precision, recall, f1-score, and support for each class.
+```
+
+----------------------------------------
+
+TITLE: Create ImageDataLoaders from file paths and label function (Python)
+DESCRIPTION: Generates `ImageDataLoaders` from a list of filenames (`fnames`) located in a `path`, applying a `label_func` to determine the label for each image. It uses `RandomSplitter` for validation set creation.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/08_vision.data.ipynb#_snippet_18
+
+LANGUAGE: python
+CODE:
+```
+@classmethod
+@delegates(DataLoaders.from_dblock)
+def from_path_func(cls, path, fnames, label_func, valid_pct=0.2, seed=None, item_tfms=None, batch_tfms=None, 
+                   img_cls=PILImage, **kwargs):
+    "Create from list of `fnames` in `path`s with `label_func`"
+    dblock = DataBlock(blocks=(ImageBlock(img_cls), CategoryBlock),
+                       splitter=RandomSplitter(valid_pct, seed=seed),
+                       get_y=label_func,
+                       item_tfms=item_tfms,
+                       batch_tfms=batch_tfms)
+    return cls.from_dblock(dblock, fnames, path=path, **kwargs)
+```
+
+----------------------------------------
+
+TITLE: Install fastai with Conda
+DESCRIPTION: This command installs the fastai library using the Conda package manager. It is the recommended installation method for users on Linux or Windows, following the installation of PyTorch.
+SOURCE: https://github.com/fastai/fastai/blob/main/README.md#_snippet_0
+
+LANGUAGE: bash
+CODE:
+```
+conda install fastai::fastai
+```
+
+----------------------------------------
+
+TITLE: Finding Optimal Learning Rate with Fastai
+DESCRIPTION: The `lr_find()` method is used to run a learning rate finder, which helps in identifying an optimal learning rate range for efficient training. The output curve suggests a suitable range for the `fit_one_cycle` method.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/39_tutorial.transformers.ipynb#_snippet_29
+
+LANGUAGE: python
+CODE:
+```
+learn.lr_find()
+```
+
+----------------------------------------
+
+TITLE: Predict Sentiment for New Text
+DESCRIPTION: Uses the trained text classifier to predict the sentiment of a new, user-provided movie review. The output includes the predicted class ('pos' or 'neg'), its vocabulary index, and the probability distribution across all classes.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/38_tutorial.text.ipynb#_snippet_9
+
+LANGUAGE: python
+CODE:
+```
+learn.predict("I really liked that movie!")
+```
+
+----------------------------------------
+
+TITLE: Train Text Classifier: Unfreeze Last Two Layers
+DESCRIPTION: This snippet demonstrates gradual unfreezing by freezing all but the last two parameter groups using `freeze_to(-2)`. It then trains the model for one epoch with a sliced learning rate, allowing more layers to be fine-tuned.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/38_tutorial.text.ipynb#_snippet_26
+
+LANGUAGE: python
+CODE:
+```
+learn.freeze_to(-2)
+learn.fit_one_cycle(1, slice(1e-2/(2.6**4),1e-2))
+```
+
+----------------------------------------
+
+TITLE: Comprehensive fastai Weights & Biases Logging Example
+DESCRIPTION: A detailed example demonstrating `WandbCallback` usage with `fastai` for vision tasks. It covers initializing W&B in dryrun mode, fitting a learner, adding more data from a new learner on the same run, logging models, and overriding model names, all within a temporary directory for isolated testing.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/70_callback.wandb.ipynb#_snippet_17
+
+LANGUAGE: python
+CODE:
+```
+path = untar_data(URLs.MNIST_TINY)
+items = get_image_files(path)
+tds = Datasets(items, [PILImageBW.create, [parent_label, Categorize()]], splits=GrandparentSplitter()(items))
+dls = tds.dataloaders(after_item=[ToTensor(), IntToFloatTensor()])
+
+os.environ['WANDB_MODE'] = 'dryrun' # run offline
+with tempfile.TemporaryDirectory() as wandb_local_dir:
+    wandb.init(anonymous='allow', dir=wandb_local_dir)
+    learn = vision_learner(dls, resnet18, loss_func=CrossEntropyLossFlat(), cbs=WandbCallback(log_model=False))
+    learn.fit(1)
+
+    # add more data from a new learner on same run
+    learn = vision_learner(dls, resnet18, loss_func=CrossEntropyLossFlat(), cbs=WandbCallback(log_model=False))
+    learn.fit(1, lr=slice(0.005))
+    
+    # save model
+    learn = cnn_learner(dls, resnet18, loss_func=CrossEntropyLossFlat(), cbs=WandbCallback(log_model=True))
+    learn.fit(1, lr=slice(0.005))
+    
+    # save model override name
+    learn = cnn_learner(dls, resnet18, path=wandb_local_dir,loss_func=CrossEntropyLossFlat(), cbs=[WandbCallback(log_model=True, model_name="good_name"), SaveModelCallback(fname="bad_name")])
+    learn.fit(1, lr=slice(0.005))
+    assert (Path(wandb_local_dir)/"models/good_name.pth").exists(), "No model file found"
+    
+    # finish writing files to temporary folder
+    wandb.finish()
+```
+
+----------------------------------------
+
+TITLE: Create a basic vision_learner
+DESCRIPTION: This snippet shows how to create a `vision_learner` instance using the previously prepared data loaders (`dls`) and a ResNet18 architecture. It specifies a flat cross-entropy loss function and a dropout probability.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/21_vision.learner.ipynb#_snippet_40
+
+LANGUAGE: python
+CODE:
+```
+learn = vision_learner(dls, models.resnet18, loss_func=CrossEntropyLossFlat(), ps=0.25)
+```
+
+----------------------------------------
+
+TITLE: Load Data with Random Validation Split using from_folder
+DESCRIPTION: This example shows how to use `ImageDataLoaders.from_folder` to create a random validation split. By setting `valid_pct=0.2`, 20% of the data is randomly allocated to the validation set, overriding any existing train/valid folder structure. The snippet then inspects the first three items of the validation dataset.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/08_vision.data.ipynb#_snippet_31
+
+LANGUAGE: python
+CODE:
+```
+dls = ImageDataLoaders.from_folder(path, valid_pct=0.2)
+dls.valid_ds.items[:3]
+```
+
+----------------------------------------
+
+TITLE: API Documentation for TextDataLoaders.from_df
+DESCRIPTION: This section provides API documentation for the `TextDataLoaders.from_df` method, detailing its parameters such as `seed`, `text_col`, `label_col`, `valid_col`, `label_delim`, `y_block`, and `tok_text_col` for creating data loaders from a Pandas DataFrame.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/31_text.data.ipynb#_snippet_51
+
+LANGUAGE: APIDOC
+CODE:
+```
+TextDataLoaders.from_df:
+  seed: Optionally passed for reproducibility.
+  text_col: Index or name of column for texts.
+  label_col: Index or name of column for labels.
+  valid_col: Optionally, index or name of column for the validation flag.
+  label_delim: Passed for multi-label problems if labels are in one column, separated by a particular char.
+  y_block: Should be passed to indicate your type of targets, in case the library did not infer it properly.
+  tok_text_col: Specifies the specific column the tokenized text are sent to. By default, stored in a column named 'text'.
+```
+
+----------------------------------------
+
+TITLE: Define Tokenization Function for Preprocessing
+DESCRIPTION: Defines a helper function `tokenize` that takes text, tokenizes it using a HuggingFace tokenizer, converts tokens to IDs, and returns a tensor. This function is designed for pre-processing all texts upfront, and the subsequent line applies this function to all texts using a progress bar.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/39_tutorial.transformers.ipynb#_snippet_22
+
+LANGUAGE: python
+CODE:
+```
+def tokenize(text):
+    toks = tokenizer.tokenize(text)
+    return tensor(tokenizer.convert_tokens_to_ids(toks))
+
+tokenized = [tokenize(t) for t in progress_bar(all_texts)]
+```
+
+----------------------------------------
+
+TITLE: Unfreeze All Layers and Train Fastai Learner (Final Stage)
+DESCRIPTION: This snippet unfreezes all layers of the model and trains it for two epochs using `fit_one_cycle` with a sliced learning rate. This is the final fine-tuning stage where the entire model is trained to optimize performance.
+SOURCE: https://github.com/fastai/fastai/blob/main/dev_nbs/course/lesson3-imdb.ipynb#_snippet_38
+
+LANGUAGE: python
+CODE:
+```
+learn.unfreeze()
+learn.fit_one_cycle(2, slice(1e-3/(2.6**4),1e-3), moms=(0.8,0.7, 0.8))
+```
+
+----------------------------------------
+
+TITLE: Python: Import FastAI Vision Utilities
+DESCRIPTION: Imports all necessary modules and functions from `fastai.vision.all`. This provides access to tools for computer vision tasks, including model creation utilities like `create_body`.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/01_layers.ipynb#_snippet_94
+
+LANGUAGE: python
+CODE:
+```
+from fastai.vision.all import *
+```
+
+----------------------------------------
+
+TITLE: Define Fastai Transform for HuggingFace Tokenization
+DESCRIPTION: Implements a custom fastai `Transform` named `TransformersTokenizer`. The `encodes` method tokenizes input text using a HuggingFace tokenizer and converts tokens to IDs, returning a tensor. The `decodes` method converts token IDs back to human-readable text using `TitledStr` for fastai's display utilities.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/39_tutorial.transformers.ipynb#_snippet_14
+
+LANGUAGE: python
+CODE:
+```
+class TransformersTokenizer(Transform):
+    def __init__(self, tokenizer): self.tokenizer = tokenizer
+    def encodes(self, x): 
+        toks = self.tokenizer.tokenize(x)
+        return tensor(self.tokenizer.convert_tokens_to_ids(toks))
+    def decodes(self, x): return TitledStr(self.tokenizer.decode(x.cpu().numpy()))
+```
+
+----------------------------------------
+
+TITLE: Initialize tabular learner model
+DESCRIPTION: Creates a 'tabular_learner' object, which sets up a neural network for tabular data. It takes the 'DataLoaders', defines the architecture with two hidden layers (200 and 100 neurons), and specifies 'accuracy' as the evaluation metric.
+SOURCE: https://github.com/fastai/fastai/blob/main/dev_nbs/course/lesson4-tabular.ipynb#_snippet_9
+
+LANGUAGE: python
+CODE:
+```
+learn = tabular_learner(dls, layers=[200,100], metrics=accuracy)
+```
+
+----------------------------------------
+
+TITLE: Implement and Train ResNet-like CNN with fastai
+DESCRIPTION: This section introduces a custom `ResBlock` module to create a ResNet-like architecture, demonstrating how to add skip connections for improved training. It shows two ways to integrate these blocks into a sequential model and then trains the final ResNet-inspired CNN using fastai's `Learner` and `fit_one_cycle` method.
+SOURCE: https://github.com/fastai/fastai/blob/main/dev_nbs/course/lesson7-resnet-mnist.ipynb#_snippet_4
+
+LANGUAGE: python
+CODE:
+```
+class ResBlock(Module):
+    def __init__(self, nf):
+        self.conv1 = ConvLayer(nf,nf)
+        self.conv2 = ConvLayer(nf,nf)
+        
+    def forward(self, x): return x + self.conv2(self.conv1(x))
+```
+
+LANGUAGE: python
+CODE:
+```
+model = nn.Sequential(
+    conv2(1, 8),
+    ResBlock(8),
+    conv2(8, 16),
+    ResBlock(16),
+    conv2(16, 32),
+    ResBlock(32),
+    conv2(32, 16),
+    ResBlock(16),
+    conv2(16, 10),
+    Flatten()
+)
+```
+
+LANGUAGE: python
+CODE:
+```
+def conv_and_res(ni,nf): return nn.Sequential(conv2(ni, nf), ResBlock(nf))
+```
+
+LANGUAGE: python
+CODE:
+```
+model = nn.Sequential(
+    conv_and_res(1, 8),
+    conv_and_res(8, 16),
+    conv_and_res(16, 32),
+    conv_and_res(32, 16),
+    conv2(16, 10),
+    Flatten()
+)
+```
+
+LANGUAGE: python
+CODE:
+```
+learn = Learner(dls, model, loss_func = nn.CrossEntropyLoss(), metrics=accuracy)
+```
+
+LANGUAGE: python
+CODE:
+```
+learn.lr_find(end_lr=100)
+```
+
+LANGUAGE: python
+CODE:
+```
+learn.fit_one_cycle(12, lr_max=0.05)
+```
+
+LANGUAGE: python
+CODE:
+```
+print(learn.summary())
+```
+
+----------------------------------------
+
+TITLE: Train fastai Learner with One-Cycle policy
+DESCRIPTION: Trains the `Learner` model using the `fit_one_cycle` function, which implements Leslie Smith's One-Cycle policy. This method optimizes the learning rate and momentum over the training epochs, here for 1 epoch with a maximum learning rate of 1e-2.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/examples/migrating_pytorch_verbose.ipynb#_snippet_17
+
+LANGUAGE: python
+CODE:
+```
+learn.fit_one_cycle(n_epoch=1, lr_max=1e-2)
+```
+
+----------------------------------------
+
+TITLE: fastai Datasets Class API Reference
+DESCRIPTION: Detailed API documentation for the `Datasets` class, outlining its constructor parameters, properties, and key methods. This class is central to fastai's data pipeline, enabling the application of multiple transformations to data items.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/03_data.core.ipynb#_snippet_63
+
+LANGUAGE: APIDOC
+CODE:
+```
+class Datasets(FilteredBase):
+  "A dataset that creates a tuple from each `tfms`"
+  __init__(self,
+    items:list=None, # List of items to create `Datasets`
+    tfms:MutableSequence|Pipeline=None, # List of `Transform`(s) or `Pipeline` to apply
+    tls:TfmdLists=None, # If None, `self.tls` is generated from `items` and `tfms`
+    n_inp:int=None, # Number of elements in `Datasets` tuple that should be considered part of input
+    dl_type=None, # Default type of `DataLoader` used when function `FilteredBase.dataloaders` is called
+    **kwargs
+  )
+  decode(o, full=True): Compose `decode` of all `tuple_tfms` then all `tfms` on `i`
+  show(o, ctx=None, **kwargs): Show item `o` in `ctx`
+  dataloaders(): Get a `DataLoaders`
+  overlapping_splits(): All splits that are in more than one split
+  subset(i): New `Datasets` that only includes subset `i`
+  new_empty(): Create a new empty version of the `self`, keeping only the transforms
+  set_split_idx(i): Contextmanager to use the same `Datasets` with another `split_idx`
+```
+
+----------------------------------------
+
+TITLE: DataBlock.dataloaders Method API Reference
+DESCRIPTION: This API documentation details the `dataloaders` method of the `DataBlock` class. It specifies the parameters (`source`, `path`, `verbose`, `kwargs`), their types, and descriptions, along with the `DataLoaders` return type. This method is crucial for generating data loaders for model training.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/06_data.block.ipynb#_snippet_14
+
+LANGUAGE: APIDOC
+CODE:
+```
+DataBlock.dataloaders(
+  source: The data source
+  path:str='.' (default: '.') - Data source and default `Learner` path
+  verbose:bool=False (default: False) - Show verbose messages
+  **kwargs
+) -> DataLoaders
+```
+
+----------------------------------------
+
+TITLE: Initialize TextDataLoaders from DataFrame for Language Modeling
+DESCRIPTION: This snippet demonstrates creating `TextDataLoaders` specifically for a language modeling task (`is_lm=True`) from a Pandas DataFrame. It specifies the text and validation columns, then displays a batch of three examples.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/31_text.data.ipynb#_snippet_57
+
+LANGUAGE: python
+CODE:
+```
+dls = TextDataLoaders.from_df(df, path=path, text_col='text', is_lm=True, valid_col='is_valid')
+dls.show_batch(max_n=3)
+```
+
+----------------------------------------
+
+TITLE: Define a PyTorch RNN Model (Model4) for fastai
+DESCRIPTION: Defines a custom `Model4` class inheriting from `fastai.torch_core.Module` that implements a simple Recurrent Neural Network (RNN) using `torch.nn.Embedding`, `torch.nn.RNN`, `torch.nn.Linear`, and `fastai.layers.BatchNorm1dFlat`. It handles hidden state initialization and detachment for backpropagation, ensuring the hidden state is correctly managed across batches.
+SOURCE: https://github.com/fastai/fastai/blob/main/dev_nbs/course/lesson7-human-numbers.ipynb#_snippet_35
+
+LANGUAGE: python
+CODE:
+```
+class Model4(Module):
+    def __init__(self):
+        self.i_h = nn.Embedding(nv,nh)
+        self.rnn = nn.RNN(nh,nh, batch_first=True)
+        self.h_o = nn.Linear(nh,nv)
+        self.bn = BatchNorm1dFlat(nh)
+        self.h = torch.zeros(1, bs, nh).cuda()
+        
+    def forward(self, x):
+        if x.shape[0]!=self.h.shape[1]: self.h = torch.zeros(1, x.shape[0], nh).cuda()
+        res,h = self.rnn(self.i_h(x), self.h)
+        self.h = h.detach()
+        return self.h_o(self.bn(res))
+```
+
+----------------------------------------
+
+TITLE: Install and Upgrade FastAI on Colab
+DESCRIPTION: Ensures the fastai library is installed and updated to the latest version specifically for Google Colab environments.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/39_tutorial.transformers.ipynb#_snippet_0
+
+LANGUAGE: bash
+CODE:
+```
+! [ -e /content ] && pip install -Uqq fastai
+```
+
+----------------------------------------
+
+TITLE: Install/Upgrade fastai on Colab
+DESCRIPTION: Checks for the existence of `/content` directory (typical for Google Colab) and then upgrades the `fastai` library using pip. This ensures the latest version of fastai is available in the Colab environment.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/33_text.models.core.ipynb#_snippet_0
+
+LANGUAGE: python
+CODE:
+```
+#|hide
+#| eval: false
+! [ -e /content ] && pip install -Uqq fastai  # upgrade fastai on colab
+```
+
+----------------------------------------
+
+TITLE: Upgrade fastai on Colab
+DESCRIPTION: This Python snippet, typically used in Google Colab environments, ensures that the fastai library is upgraded to its latest version. It checks for the existence of the '/content' directory before executing the pip upgrade command.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/70d_callback.comet.ipynb#_snippet_0
+
+LANGUAGE: python
+CODE:
+```
+#|hide
+#| eval: false
+! [ -e /content ] && pip install -Uqq fastai  # upgrade fastai on colab
+```
+
+----------------------------------------
+
+TITLE: Load fastai Learner from Hugging Face Hub
+DESCRIPTION: Downloads and initializes a fastai `Learner` object from a specified repository on the Hugging Face Hub, allowing users to easily retrieve and use pre-trained models.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/74_huggingface.ipynb#_snippet_4
+
+LANGUAGE: python
+CODE:
+```
+from huggingface_hub import from_pretrained_fastai
+
+# repo_id = "YOUR_USERNAME/YOUR_LEARNER_NAME"
+repo_id = "espejelomar/identify-my-cat"
+
+learner = from_pretrained_fastai(repo_id)
+```
+
+----------------------------------------
+
+TITLE: Fine-tune Entire Model with One-Cycle Policy
+DESCRIPTION: Fine-tunes the entire unfrozen model for 5 epochs using the one-cycle policy. A differential learning rate slice is applied, typically with a lower learning rate for earlier layers.
+SOURCE: https://github.com/fastai/fastai/blob/main/dev_nbs/course/lesson3-planet.ipynb#_snippet_21
+
+LANGUAGE: python
+CODE:
+```
+learn.fit_one_cycle(5, slice(1e-5, lr/5))
+```
+
+----------------------------------------
+
+TITLE: Build a Vision Learner with Optional Normalization and Pretrained Weights
+DESCRIPTION: The `vision_learner` function constructs a fastai `Learner` for vision tasks. It takes `DataLoaders` and an architecture, automatically inferring the number of output classes or using `n_out`. If `normalize` and `pretrained` are true, it adds a `Normalize` transform to the `dls` using the pretrained model's statistics. It supports both standard fastai vision models and `timm` models, handling their respective normalization methods. All other arguments are passed directly to the `Learner` constructor.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/21_vision.learner.ipynb#_snippet_29
+
+LANGUAGE: python
+CODE:
+```
+@delegates(create_vision_model)
+def vision_learner(dls, arch, normalize=True, n_out=None, pretrained=True, weights=None,
+        # learner args
+        loss_func=None, opt_func=Adam, lr=defaults.lr, splitter=None, cbs=None, metrics=None, path=None,
+        model_dir='models', wd=None, wd_bn_bias=False, train_bn=True, moms=(0.95,0.85,0.95),
+        # model & head args
+        cut=None, init=nn.init.kaiming_normal_, custom_head=None, concat_pool=True, pool=True,
+        lin_ftrs=None, ps=0.5, first_bn=True, bn_final=False, lin_first=False, y_range=None, **kwargs):
+    "Build a vision learner from `dls` and `arch`"
+    if n_out is None: n_out = get_c(dls)
+    assert n_out, "`n_out` is not defined, and could not be inferred from data, set `dls.c` or pass `n_out`"
+    meta = model_meta.get(arch, _default_meta)
+    model_args = dict(init=init, custom_head=custom_head, concat_pool=concat_pool, pool=pool, lin_ftrs=lin_ftrs, ps=ps,
+                      first_bn=first_bn, bn_final=bn_final, lin_first=lin_first, y_range=y_range, **kwargs)
+    n_in = kwargs['n_in'] if 'n_in' in kwargs else 3
+    if isinstance(arch, str):
+        model,cfg = create_timm_model(arch, n_out, default_split, pretrained, **model_args)
+        if normalize: _timm_norm(dls, cfg, pretrained, n_in)
+    else:
+        if normalize: _add_norm(dls, meta, pretrained, n_in)
+        model = create_vision_model(arch, n_out, pretrained=pretrained, weights=weights, **model_args)
+
+    splitter = ifnone(splitter, meta['split'])
+    learn = Learner(dls=dls, model=model, loss_func=loss_func, opt_func=opt_func, lr=lr, splitter=splitter, cbs=cbs,
+                   metrics=metrics, path=path, model_dir=model_dir, wd=wd, wd_bn_bias=wd_bn_bias, train_bn=train_bn, moms=moms)
+    if pretrained: learn.freeze()
+    # keep track of args for loggers
+    store_attr('arch,normalize,n_out,pretrained', self=learn, **kwargs)
+    return learn
+```
+
+----------------------------------------
+
+TITLE: Train Fastai Learner with One Cycle Policy (First Stage)
+DESCRIPTION: This snippet trains the `learn` model for one epoch using the `fit_one_cycle` policy with a specified learning rate and momentum values. This is typically the first stage of training, often with initial layers frozen.
+SOURCE: https://github.com/fastai/fastai/blob/main/dev_nbs/course/lesson3-imdb.ipynb#_snippet_34
+
+LANGUAGE: python
+CODE:
+```
+learn.fit_one_cycle(1, 2e-2, moms=(0.8,0.7, 0.8))
+```
+
+----------------------------------------
+
+TITLE: Unfreeze and Fine-tune Language Model
+DESCRIPTION: This snippet unfreezes the entire language model, allowing all layers to be trained. It then fine- tunes the model for 10 epochs using the `fit_one_cycle` method with a learning rate of 1e-3.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/38_tutorial.text.ipynb#_snippet_18
+
+LANGUAGE: python
+CODE:
+```
+learn.unfreeze()
+learn.fit_one_cycle(10, 1e-3)
+```
+
+----------------------------------------
+
+TITLE: Initialize Fastai Learner with Multilabel Metrics
+DESCRIPTION: Initializes a fastai Learner for vision tasks, using the defined DataLoaders and resnet50 architecture. It includes custom metrics: accuracy_multi with a 0.2 threshold and FBetaMulti (F2-score) for multiclassification, aligning with competition requirements.
+SOURCE: https://github.com/fastai/fastai/blob/main/dev_nbs/course/lesson3-planet.ipynb#_snippet_14
+
+LANGUAGE: python
+CODE:
+```
+acc_02 = partial(accuracy_multi, thresh=0.2)
+f_score = FBetaMulti(2, thresh=0.2, average='samples')
+learn = vision_learner(dls, arch, metrics=[acc_02, f_score])
+```
+
+----------------------------------------
+
+TITLE: Python: Define EarlyStoppingCallback Class
+DESCRIPTION: Defines the `EarlyStoppingCallback` class in fastai, a `TrackerCallback` designed to terminate model training when a monitored quantity (e.g., validation loss or a metric) stops improving. It includes methods for initialization and epoch-end checks.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/17_callback.tracker.ipynb#_snippet_13
+
+LANGUAGE: python
+CODE:
+```
+#|export
+class EarlyStoppingCallback(TrackerCallback):
+    "A `TrackerCallback` that terminates training when monitored quantity stops improving."
+    order=TrackerCallback.order+3
+    def __init__(self,
+        monitor='valid_loss', # value (usually loss or metric) being monitored.
+        comp=None, # numpy comparison operator; np.less if monitor is loss, np.greater if monitor is metric.
+        min_delta=0., # minimum delta between the last monitor value and the best monitor value.
+        patience=1, # number of epochs to wait when training has not improved model.
+        reset_on_fit=True # before model fitting, reset value being monitored to -infinity (if monitor is metric) or +infinity (if monitor is loss).
+    ):
+        super().__init__(monitor=monitor, comp=comp, min_delta=min_delta, reset_on_fit=reset_on_fit)
+        self.patience = patience
+
+    def before_fit(self): self.wait = 0; super().before_fit()
+    def after_epoch():
+        "Compare the value monitored to its best score and maybe stop training."
+        super().after_epoch()
+        if self.new_best: self.wait = 0
+        else:
+            self.wait += 1
+            if self.wait >= self.patience:
+                print(f'No improvement since epoch {self.epoch-self.wait}: early stopping')
+                raise CancelFitException()
+```
+
+----------------------------------------
+
+TITLE: Create DataLoaders from TabularPandas
+DESCRIPTION: This line converts the preprocessed `TabularPandas` object into `DataLoaders`. It prepares the data for model training by organizing it into batches, with a specified batch size of 64.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/44_tutorial.tabular.ipynb#_snippet_8
+
+LANGUAGE: python
+CODE:
+```
+dls = to.dataloaders(bs=64)
+```
+
+----------------------------------------
+
+TITLE: Import fastai DataLoaders Class
+DESCRIPTION: Imports the `DataLoaders` class from fastai, which is used to wrap one or more PyTorch `DataLoader` objects, making them compatible with the fastai framework's `Learner`.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/examples/migrating_pytorch_verbose.ipynb#_snippet_6
+
+LANGUAGE: python
+CODE:
+```
+from fastai.data.core import DataLoaders
+```
+
+----------------------------------------
+
+TITLE: Create TabularPandas object for data processing
+DESCRIPTION: Initializes a 'TabularPandas' object, which is central to fastai's tabular data pipeline. It takes the DataFrame, defined preprocessors, feature names, dependent variable, and data splits to prepare the data for model training.
+SOURCE: https://github.com/fastai/fastai/blob/main/dev_nbs/course/lesson4-tabular.ipynb#_snippet_6
+
+LANGUAGE: python
+CODE:
+```
+to = TabularPandas(df, procs, cat_names, cont_names, y_names="salary", splits=splits)
+```
+
+----------------------------------------
+
+TITLE: Install fastai with Conda
+DESCRIPTION: This command installs the fastai library using the Conda package manager. It is the recommended installation method for Linux and Windows users after installing PyTorch.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/index.ipynb#_snippet_1
+
+LANGUAGE: bash
+CODE:
+```
+conda install fastai::fastai
+```
+
+----------------------------------------
+
+TITLE: Find Optimal Learning Rate for Fastai Learner
+DESCRIPTION: This method performs a learning rate finder sweep, which helps in identifying an optimal learning rate range for training the neural network. It's a recommended step before starting the training process to ensure efficient convergence.
+SOURCE: https://github.com/fastai/fastai/blob/main/dev_nbs/course/lesson3-imdb.ipynb#_snippet_33
+
+LANGUAGE: python
+CODE:
+```
+learn.lr_find()
+```
+
+----------------------------------------
+
+TITLE: Perform inference on a single tabular data row
+DESCRIPTION: Uses the trained 'learn' object to make a prediction on the selected single row of data. This showcases how to use the model for inference after it has been trained.
+SOURCE: https://github.com/fastai/fastai/blob/main/dev_nbs/course/lesson4-tabular.ipynb#_snippet_12
+
+LANGUAGE: python
+CODE:
+```
+learn.predict(row)
+```
+
+----------------------------------------
+
+TITLE: Make Prediction with Trained Learner
+DESCRIPTION: Shows how to use the trained `learn` object to make a prediction on a new input tensor.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/16_callback.progress.ipynb#_snippet_18
+
+LANGUAGE: python
+CODE:
+```
+learn.predict(torch.tensor([[0.1]]))
+```
+
+----------------------------------------
+
+TITLE: FastAI DataLoader API Reference: Methods
+DESCRIPTION: This section provides a detailed API reference for the methods available in the FastAI DataLoader. It describes the purpose and functionality of each method, including those for index generation, batch processing, and various lifecycle callbacks, enhancing compatibility with PyTorch's DataLoader while adding flexibility.
+SOURCE: https://github.com/fastai/fastai/blob/main/nbs/02_data.load.ipynb#_snippet_16
+
+LANGUAGE: APIDOC
+CODE:
+```
+DataLoader:
+  get_idxs: Return a list of indices to reference the dataset. Calls `shuffle_fn` internally if `shuffle=True`.
+  sample: Same as `get_idxs` but returns a generator of indices to reference the dataset.
+  create_batches: Takes output of `sample` as input, and returns batches of data. Does not apply `after_batch`.
+  new: Create a new `DataLoader` with given arguments keeping remaining arguments same as original `DataLoader`.
+  prebatched: Check if `bs` is None.
+  do_item: Combines `after_item` and `create_item` to get an item from dataset by providing index as input.
+  chunkify: Used by `create_batches` to turn generator of items (`b`) into batches.
+  shuffle_fn: Returns a random permutation of `idxs`.
+  randomize: Set's `DataLoader` random number generator state.
+  retain: Cast each item of `res` to type of matching item in `b` if its a superclass.
+  create_item: Subset of the dataset containing the index values of sample if exists, else next iterator.
+  create_batch: Collate a list of items into a batch.
+  do_batch: Combines `create_batch` and `before_batch` to get a batch of items. Input is a list of items to collate.
+  to: Sets `self.device=device`.
+  one_batch: Return one batch from `DataLoader`.
+  wif: See pytorch `worker_init_fn` for details.
+  before_iter: Called before `DataLoader` starts to read/iterate over the dataset.
+  after_item: Takes output of `create_item` as input and applies this function on it.
+  before_batch: It is called before collating a list of items into a batch. Input is a list of items.
+  after_batch: After collating mini-batch of items, the mini-batch is passed through this function.
+  after_iter: Called after `DataLoader` has fully read/iterated over the dataset.
+```

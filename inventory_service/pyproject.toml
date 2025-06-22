@@ -1,0 +1,13 @@
+[project]
+name = "inventory-service"
+version = "0.1.0"
+description = "Inventory service for Hotel System"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[all]",
+]
+
+[tool.setuptools]
+package-dir = {"" = "app"}
+packages = ["api", "config", "db", "models", "service"] 

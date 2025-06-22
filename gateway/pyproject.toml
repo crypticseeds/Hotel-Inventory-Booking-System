@@ -1,0 +1,13 @@
+[project]
+name = "gateway"
+version = "0.1.0"
+description = "API Gateway for Hotel System"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[all]",
+    "httpx",
+]
+
+[tool.setuptools]
+packages = ["api", "config", "utils"] 
