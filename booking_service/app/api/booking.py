@@ -1,13 +1,13 @@
 from fastapi import APIRouter
 
 router = APIRouter(
-    prefix="/booking",
-    tags=["booking"],
+    prefix="/bookings",
+    tags=["bookings"],
 )
 
 @router.get("/")
 async def read_bookings():
-    return [{"booking_id": "booking123", "item": "deluxe room"}, {"booking_id": "booking456", "item": "suite"}]
+    return [{"booking_id": "example"}]
 
 @router.post("/")
 async def create_booking(item: str):
