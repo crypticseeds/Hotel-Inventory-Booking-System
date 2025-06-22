@@ -3,6 +3,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# UV and Cursor
+.uv/
+.cursor/
+.ruff_cache/
+.python-version
 # C extensions
 *.so
 
