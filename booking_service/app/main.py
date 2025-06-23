@@ -16,4 +16,4 @@ app.include_router(booking.router)
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to the Booking Service"} 
+    return {"message": "Welcome to the Booking Service"}

@@ -9,11 +9,13 @@ from sqlalchemy import (
     TIMESTAMP,
     ForeignKey,
     Computed,
+    text,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from sqlalchemy.orm import declarative_base
 import uuid
+from datetime import date
 
 Base = declarative_base()
 
@@ -22,7 +24,8 @@ class Booking(Base):
     __tablename__ = "booking"
 
     booking_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    hotel_id = Column(Integer, ForeignKey("hotel.hotel_id"), nullable=False)
+    guest_name = Column(String(100), nullable=False)
+    hotel_id = Column(Integer, nullable=False)
     arrival_date = Column(Date, nullable=False)
     stay_length = Column(Integer, nullable=False)
     check_out_date = Column(
@@ -38,7 +41,7 @@ class Booking(Base):
     booking_channel = Column(String(50), nullable=True)
     room_price = Column(Numeric(8, 2), nullable=False)
     reservation_status = Column(String(20), nullable=False)
-    created_at = Column(TIMESTAMP, server_default=func.now())
+    created_at = Column(Date, server_default=func.current_date())
 
     __table_args__ = (
         Index("ix_booking_hotel_id", "hotel_id"),

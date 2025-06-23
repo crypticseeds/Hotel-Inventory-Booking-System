@@ -65,6 +65,7 @@ curl http://localhost:8080/inventory/
 **Create a booking (example payload):**
 ```bash
 curl -X POST http://localhost:8080/bookings/ -H "Content-Type: application/json" -d '{
+  "guest_name": "Femi A",
   "hotel_id": 1,
   "arrival_date": "2024-09-15",
   "stay_length": 2,
@@ -81,6 +82,28 @@ curl -X POST http://localhost:8080/bookings/ -H "Content-Type: application/json"
 }'
 ```
 
+## Development vs Production Database Schema Changes
+
+- During development, you may drop and recreate tables to pick up model changes. This will remove all data in the table, but ensures the schema matches your models.
+- In production, **do not drop tables**. Instead, use a migration tool like Alembic to safely update your database schema without losing data.
+
+## Running the Booking Service for Development
+
+To run the booking service directly (without Docker), navigate to the `booking_service/app` directory and run:
+
+```bash
+uvicorn main:app --reload --host 0.0.0.0 --port 8001
+```
+
+Make sure you have all dependencies installed. Install `uvicorn` and other dependencies using `pip` or `uv`:
+
+```bash
+pip install uvicorn
+# or
+uv pip install uvicorn
+```
+
+**Do not use `apt install uvicorn` for Python projects.**
 
 ## Database Schema
 
@@ -106,6 +129,7 @@ The application uses a PostgreSQL database for each service. The schemas are def
 
 -   **`booking` table**: Stores booking information.
     -   `booking_id` (UUID, PK): Unique identifier for the booking.
+    -   `guest_name`
     -   `hotel_id` (Integer, FK): Foreign key to the `hotel` table.
     -   `arrival_date` (Date): Arrival date for the booking.
     -   `stay_length` (Integer): Number of nights.

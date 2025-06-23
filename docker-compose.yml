@@ -17,11 +17,11 @@ services:
     volumes:
       - ./booking_service/app:/app
     ports:
-      - "8001:8000" # Expose for direct testing if needed
+      - "8002:8000" # Expose for direct testing if needed
 
   inventory_service:
     build: ./inventory_service
     volumes:
       - ./inventory_service/app:/app
     ports:
-      - "8002:8000" # Expose for direct testing if needed 
+      - "8001:8000" # Expose for direct testing if needed 

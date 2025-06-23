@@ -6,6 +6,7 @@ from typing import Optional
 
 
 class BookingBase(BaseModel):
+    guest_name: str = Field(..., max_length=100)
     hotel_id: int
     arrival_date: date
     stay_length: int = Field(..., gt=0)
@@ -31,4 +32,4 @@ class Booking(BookingBase):
     created_at: date
 
     class Config:
-        orm_mode = True 
+        from_attributes = True 
