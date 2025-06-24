@@ -66,6 +66,21 @@ The API Gateway routes requests to the appropriate service based on the path.
 -   **`POST /bookings/`**: Creates a new booking.
     -   **Body**: `BookingCreate` schema.
 -   **`GET /bookings/{booking_id}`**: Retrieves a specific booking by its ID.
+-   **`PATCH /bookings/{booking_id}`**: Partially updates a booking. Only the following fields can be updated: `guest_name`, `arrival_date`, `stay_length`, `room_type`, `adults`, `children`.
+    -   **Body**: Partial `BookingUpdate` schema (only fields to be updated are required).
+    -   Returns 400 if the booking is cancelled.
+    -   Example:
+        ```bash
+        curl -X PATCH http://localhost:8080/bookings/{booking_id} \
+          -H "Content-Type: application/json" \
+          -d '{"guest_name": "Updated Name"}'
+        ```
+-   **`DELETE /bookings/{booking_id}`**: Cancels a booking. Sets the booking's `reservation_status` to `cancelled` and returns the updated booking.
+    -   Returns 400 if the booking is already cancelled.
+    -   Example:
+        ```bash
+        curl -X DELETE http://localhost:8080/bookings/{booking_id}
+        ```
 
 ## How to Use
 
@@ -183,3 +198,8 @@ If a booking is made for `2024-07-01`, `2024-07-02`, or any future date, the sam
 ### API Changes
 - The `POST /inventory/{hotel_id}/adjust` endpoint now finds the correct inventory row based on this logic.
 - If no suitable row is found (e.g., all are in the future or have insufficient rooms), a 400 error is returned.
+
+
+
+future enhancements:
+- Enforce idempotency for POST /booking to avoid duplicates.

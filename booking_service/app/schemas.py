@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 from datetime import date
 from decimal import Decimal
 from uuid import UUID
-from typing import Optional
+from typing import Optional, Any
 
 
 class BookingBase(BaseModel):
@@ -33,4 +33,17 @@ class Booking(BookingBase):
     created_at: date
 
     class Config:
-        from_attributes = True 
+        from_attributes = True
+
+
+class BookingUpdate(BaseModel):
+    guest_name: Optional[str] = Field(None, max_length=100)
+    arrival_date: Optional[date] = None
+    stay_length: Optional[int] = Field(None, gt=0)
+    room_type: Optional[str] = Field(None, max_length=50)
+    adults: Optional[int] = Field(None, gt=0)
+    children: Optional[int] = Field(None, ge=0)
+    # You can add more fields here if you want to allow them to be patched
+
+    class Config:
+        extra = "forbid"  # Forbid fields not explicitly listed 

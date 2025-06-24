@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, Depends, HTTPException, Path, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..db.connection import get_db
-from ..schemas import BookingCreate, Booking
+from ..schemas import BookingCreate, Booking, BookingUpdate
 from ..db.models import Booking as BookingModel
 from datetime import date, datetime, timedelta
 import logging
@@ -237,5 +237,62 @@ async def cancel_booking(
         raise
     except Exception as e:
         logger.error(f"Error cancelling booking: {str(e)}", exc_info=True)
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.patch("/{booking_id}", response_model=Booking)
+async def update_booking(
+    booking_id: str = Path(..., description="The UUID of the booking to update"),
+    booking_update: BookingUpdate = Body(...),
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        db_booking = await db.get(BookingModel, booking_id)
+        if not db_booking:
+            raise HTTPException(status_code=404, detail="Booking not found")
+        if str(getattr(db_booking, 'reservation_status')).lower() == "cancelled":
+            raise HTTPException(status_code=400, detail="Booking has been cancelled and cannot be modified")
+
+        update_data = booking_update.dict(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(db_booking, field, value)
+
+        await db.commit()
+        await db.refresh(db_booking)
+
+        # Fetch hotel_name from inventory service
+        inventory_service_url = "http://localhost:8001/inventory"
+        async with httpx.AsyncClient() as client:
+            hotel_name_url = f"{inventory_service_url}/hotel_name/{db_booking.hotel_id}"
+            hotel_resp = await client.get(hotel_name_url, timeout=5.0)
+            if hotel_resp.status_code == 200:
+                hotel_name = hotel_resp.json().get("hotel_name")
+            else:
+                hotel_name = None
+
+        booking_data = {
+            "booking_id": db_booking.booking_id,
+            "guest_name": db_booking.guest_name,
+            "hotel_name": hotel_name,
+            "arrival_date": db_booking.arrival_date,
+            "stay_length": db_booking.stay_length,
+            "check_out_date": db_booking.check_out_date,
+            "room_type": db_booking.room_type,
+            "adults": db_booking.adults,
+            "children": db_booking.children,
+            "meal_plan": db_booking.meal_plan,
+            "market_segment": db_booking.market_segment,
+            "is_weekend": db_booking.is_weekend,
+            "is_holiday": db_booking.is_holiday,
+            "booking_channel": db_booking.booking_channel,
+            "room_price": db_booking.room_price,
+            "reservation_status": db_booking.reservation_status,
+            "created_at": db_booking.created_at.date() if hasattr(db_booking.created_at, 'date') else db_booking.created_at
+        }
+        return booking_data
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating booking: {str(e)}", exc_info=True)
         await db.rollback()
         raise HTTPException(status_code=500, detail=str(e)) 
