@@ -57,3 +57,8 @@ async def adjust_inventory(
     setattr(inventory_row, "available_rooms", current_rooms - num_rooms)
     await db.commit()
     return True
+
+async def get_hotel_name_by_id(db: AsyncSession, hotel_id: int) -> Optional[str]:
+    result = await db.execute(select(Hotel.hotel_name).where(Hotel.hotel_id == hotel_id))
+    hotel_name = result.scalar_one_or_none()
+    return hotel_name

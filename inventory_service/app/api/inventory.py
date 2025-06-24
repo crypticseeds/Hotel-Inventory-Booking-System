@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query, HTTPException, Body
 from typing import List, Optional
 from datetime import date
 from ..db.connection import get_db
-from ..service import get_inventory_by_hotel, adjust_inventory
+from ..service import get_inventory_by_hotel, adjust_inventory, get_hotel_name_by_id
 from ..schemas import Inventory, InventoryPublic
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
@@ -38,6 +38,13 @@ async def get_hotel_inventory(
             "demand_level": inv.demand_level,
         })
     return response
+
+@router.get("/hotel_name/{hotel_id}")
+async def get_hotel_name(hotel_id: int, db: AsyncSession = Depends(get_db)):
+    hotel_name = await get_hotel_name_by_id(db, hotel_id)
+    if hotel_name is None:
+        raise HTTPException(status_code=404, detail="Hotel not found")
+    return {"hotel_id": hotel_id, "hotel_name": hotel_name}
 
 class InventoryAdjustRequest(BaseModel):
     room_type: str

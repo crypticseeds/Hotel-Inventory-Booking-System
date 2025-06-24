@@ -7,7 +7,7 @@ from typing import Optional
 
 class BookingBase(BaseModel):
     guest_name: str = Field(..., max_length=100)
-    hotel_id: int
+    hotel_name: Optional[str] = Field(None, max_length=100)
     arrival_date: date
     stay_length: int = Field(..., gt=0)
     room_type: str = Field(..., max_length=50)
@@ -23,7 +23,8 @@ class BookingBase(BaseModel):
 
 
 class BookingCreate(BookingBase):
-    pass
+    hotel_id: int
+    hotel_name: Optional[str] = None  # Not required for creation
 
 
 class Booking(BookingBase):

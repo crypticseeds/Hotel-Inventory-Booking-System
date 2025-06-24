@@ -24,7 +24,10 @@ async def read_bookings(db: AsyncSession = Depends(get_db)):
 async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_db)):
     try:
         logger.debug(f"Received booking data: {booking.dict()}")
-        db_booking = BookingModel(**booking.dict())
+        booking_dict = booking.dict()
+        if 'hotel_name' in booking_dict:
+            booking_dict.pop('hotel_name')
+        db_booking = BookingModel(**booking_dict)
         logger.debug(f"Created booking model: {db_booking.__dict__}")
         db.add(db_booking)
         await db.commit()
@@ -49,11 +52,20 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
                 except Exception as e:
                     logger.warning(f"Error calling inventory service: {e}")
         
+        # Fetch hotel_name from inventory service
+        async with httpx.AsyncClient() as client:
+            hotel_name_url = f"{inventory_service_url}/hotel_name/{db_booking.hotel_id}"
+            hotel_resp = await client.get(hotel_name_url, timeout=5.0)
+            if hotel_resp.status_code == 200:
+                hotel_name = hotel_resp.json().get("hotel_name")
+            else:
+                hotel_name = None
+        
         # Convert the SQLAlchemy model instance to a dict with the exact fields expected by the Pydantic model
         booking_data = {
             "booking_id": db_booking.booking_id,
             "guest_name": db_booking.guest_name,
-            "hotel_id": db_booking.hotel_id,
+            "hotel_name": hotel_name,
             "arrival_date": db_booking.arrival_date,
             "stay_length": db_booking.stay_length,
             "check_out_date": db_booking.check_out_date,
