@@ -35,7 +35,7 @@ This folder contains the script and environment setup to generate synthetic trai
 - All dependencies are managed via `pyproject.toml` and locked in `uv.lock` for reproducibility.
 
 ## Output
-- `~/synthetic_hotel_bookings_2024_2025.csv`: The generated dataset, ready for use in AI/ML pipelines or for loading into the inventory database.
+- `~/synthetic_hotel_bookings_2024_2025.csv`: The generated dataset, ready for use in AI/ML pipelines.
 
 ---
 For more on uv workflows, see [uv documentation](https://docs.astral.sh/uv/).
