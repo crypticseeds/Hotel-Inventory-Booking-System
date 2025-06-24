@@ -43,3 +43,62 @@ This section details the creation of the database schema for the `inventory_serv
     *   **Learning:** This reinforced that errors are not always in the application code. The issue was a network connectivity problem between the service and the database, solvable by correcting the database URL or firewall settings, not by changing Python code.
 *   **Python Imports in Packages:** An initial `ModuleNotFoundError` for `app.models` highlighted a common pitfall.
     *   **Learning:** When working within a Python package (like our `app`), using relative imports (`from . import module`) is crucial for modules to correctly find each other.
+
+## 5. API Endpoints Overview
+
+### Booking Service (`/bookings`)
+- **GET /bookings/**: List all bookings.
+- **POST /bookings/**: Create a new booking.
+- **GET /bookings/{booking_id}**: Retrieve a booking by its UUID.
+- **PATCH /bookings/{booking_id}**: Update fields of a booking (guest_name, arrival_date, stay_length, room_type, adults, children).
+- **DELETE /bookings/{booking_id}**: Cancel a booking (sets reservation_status to 'cancelled').
+
+### Inventory Service (`/inventory`)
+- **GET /inventory/**: List all inventory items (sample data or stub).
+- **GET /inventory/{hotel_id}**: List inventory for a specific hotel, with optional date range.
+- **GET /inventory/hotel_name/{hotel_id}**: Get the hotel name for a given hotel_id.
+- **POST /inventory/{hotel_id}/adjust**: Adjust inventory for a hotel (decrement/increment available rooms).
+
+### API Gateway
+- **/booking/{path:path}**: Proxies all booking-related requests to the booking service.
+- **/inventory/{path:path}**: Proxies all inventory-related requests to the inventory service.
+- **GET /**: Health check for the gateway.
+
+## 6. Libraries, Tools, and Core FastAPI Functions
+
+### Main Libraries & Tools
+- **FastAPI**: Web framework for building APIs.
+- **SQLAlchemy**: ORM for database models and async database access.
+- **asyncpg**: Async PostgreSQL driver.
+- **psycopg2-binary**: (Fallback/legacy) PostgreSQL driver.
+- **Pydantic**: Data validation and settings management.
+- **python-dotenv**: Loads environment variables from `.env` files.
+- **httpx**: Async HTTP client for service-to-service calls.
+- **faker**: Generates fake data for sample inventory.
+- **uv**: Fast dependency and environment manager (used in Docker setup).
+- **Docker & Docker Compose**: Containerization and orchestration.
+
+### Core FastAPI Functions/Classes Used
+- `FastAPI`: Main app instance.
+- `APIRouter`: For modular route definitions.
+- `@app.get`, `@app.post`, `@app.patch`, `@app.delete`, `@app.on_event`: Route and event decorators.
+- `Depends`: Dependency injection (e.g., for DB sessions).
+- `HTTPException`: For error handling and custom responses.
+- `Body`, `Query`, `Path`: For request data validation and extraction.
+- `Request`, `Response`: For low-level request/response handling (used in gateway).
+
+### Other Notable Imports
+- `sqlalchemy.ext.asyncio`: Async database engine/session.
+- `sqlalchemy.orm`: ORM base and session management.
+- `sqlalchemy.future.select`: Async query building.
+- `sqlalchemy.dialects.postgresql.UUID`: For UUID primary keys.
+- `pydantic.BaseModel`, `Field`: For schema and validation.
+- `os`, `logging`, `datetime`, `uuid`, `random`, `decimal`, `typing` (standard library utilities).
+
+### Custom Functions/Utilities
+- `get_db`: Yields an async DB session for dependency injection.
+- `create_tables`: Creates DB tables if not present.
+- `populate_sample_inventory`: Fills the inventory with sample data.
+- `get_inventory_by_hotel`, `adjust_inventory`, `get_hotel_name_by_id`: Inventory service logic.
+
+This section provides a reference for all endpoints, libraries, and core FastAPI features used in this microservice project, supporting both learning and future development.
