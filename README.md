@@ -131,11 +131,10 @@ The application uses a PostgreSQL database for each service. The schemas are def
     -   `location` (String): Location of the hotel.
 
 -   **`inventory` table**: Manages room inventory for each hotel.
-    -   `inventory_id` (Integer, PK): Unique identifier for the inventory record.
     -   `hotel_id` (Integer, FK): Foreign key to the `hotel` table.
     -   `room_type` (String): Type of the room (e.g., "deluxe", "suite").
-    -   `date` (Date): The date for which the inventory is recorded.
-    -   `available_rooms` (Integer): Number of available rooms.
+    -   `date` (Date): The **start date** for which the inventory is available. This date is now interpreted as the beginning of ongoing availability for that room type.
+    -   `available_rooms` (Integer): Number of available rooms. This value is decremented for bookings on or after the start date.
     -   `room_price` (Numeric): Price of the room.
     -   `demand_level` (String, nullable): The forecasted demand level.
 
@@ -159,3 +158,28 @@ The application uses a PostgreSQL database for each service. The schemas are def
     -   `room_price` (Numeric): Price of the room for the booking.
     -   `reservation_status` (String): Status of the reservation (e.g., "confirmed", "cancelled").
     -   `created_at` (TIMESTAMP): Timestamp of when the booking was created.
+
+## New Inventory Adjustment Logic
+
+### Flexible Inventory Date Handling
+
+The inventory service now supports a more flexible approach to room availability:
+
+- **Inventory rows represent the start date of availability for a room type.**
+- When a booking is made for a date on or after the inventory's `date`, the system will decrement `available_rooms` from the inventory row with the latest `date` less than or equal to the booking date.
+- **You do not need to create a row for every date.** A single row with a start date is sufficient for ongoing availability.
+
+#### Example
+Suppose you have this inventory row:
+
+| hotel_id | room_type     | date       | available_rooms |
+|----------|--------------|------------|----------------|
+| 111      | Deluxe Rooms  | 2024-07-01 | 5              |
+
+If a booking is made for `2024-07-03`, the system will decrement `available_rooms` in the row for `2024-07-01` (since that's the start of availability).
+
+If a booking is made for `2024-07-01`, `2024-07-02`, or any future date, the same row will be used (as long as `available_rooms` is sufficient).
+
+### API Changes
+- The `POST /inventory/{hotel_id}/adjust` endpoint now finds the correct inventory row based on this logic.
+- If no suitable row is found (e.g., all are in the future or have insufficient rooms), a 400 error is returned.
