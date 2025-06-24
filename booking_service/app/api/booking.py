@@ -73,23 +73,21 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
         await db.refresh(db_booking)
         logger.debug(f"Refreshed booking data: {db_booking.__dict__}")
         
-        # Adjust inventory for each night of the stay
+        # Adjust inventory for the booking (remove one room for the entire stay)
         inventory_service_url = "http://localhost:8001/inventory"
-        for day in range(booking.stay_length):
-            adjust_date = booking.arrival_date + timedelta(days=day)
-            adjust_payload = {
-                "room_type": booking.room_type,
-                "date": str(adjust_date),
-                "num_rooms": 1
-            }
-            async with httpx.AsyncClient() as client:
-                adjust_url = f"{inventory_service_url}/{booking.hotel_id}/adjust"
-                try:
-                    resp = await client.post(adjust_url, json=adjust_payload, timeout=5.0)
-                    if resp.status_code != 200:
-                        logger.warning(f"Inventory adjustment failed for {adjust_payload}: {resp.text}")
-                except Exception as e:
-                    logger.warning(f"Error calling inventory service: {e}")
+        adjust_payload = {
+            "room_type": booking.room_type,
+            "date": str(booking.arrival_date),
+            "num_rooms": 1
+        }
+        async with httpx.AsyncClient() as client:
+            adjust_url = f"{inventory_service_url}/{booking.hotel_id}/adjust"
+            try:
+                resp = await client.post(adjust_url, json=adjust_payload, timeout=5.0)
+                if resp.status_code != 200:
+                    logger.warning(f"Inventory adjustment failed for {adjust_payload}: {resp.text}")
+            except Exception as e:
+                logger.warning(f"Error calling inventory service: {e}")
         
         # Fetch hotel_name from inventory service
         async with httpx.AsyncClient() as client:
@@ -171,4 +169,73 @@ async def get_booking_by_id(
         raise
     except Exception as e:
         logger.error(f"Error fetching booking: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/{booking_id}", response_model=Booking)
+async def cancel_booking(
+    booking_id: str = Path(..., description="The UUID of the booking to cancel"),
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        db_booking = await db.get(BookingModel, booking_id)
+        if not db_booking:
+            raise HTTPException(status_code=404, detail="Booking not found")
+        if str(getattr(db_booking, 'reservation_status')).lower() == "cancelled":
+            raise HTTPException(status_code=400, detail="Booking is already cancelled")
+
+        # Mark as cancelled
+        object.__setattr__(db_booking, 'reservation_status', 'cancelled')
+        await db.commit()
+        await db.refresh(db_booking)
+
+        # Return one room to inventory (for the entire stay)
+        inventory_service_url = "http://localhost:8001/inventory"
+        adjust_payload = {
+            "room_type": db_booking.room_type,
+            "date": str(db_booking.arrival_date),
+            "num_rooms": -1
+        }
+        async with httpx.AsyncClient() as client:
+            adjust_url = f"{inventory_service_url}/{db_booking.hotel_id}/adjust"
+            try:
+                resp = await client.post(adjust_url, json=adjust_payload, timeout=5.0)
+                if resp.status_code != 200:
+                    logger.warning(f"Inventory adjustment (return) failed for {adjust_payload}: {resp.text}")
+            except Exception as e:
+                logger.warning(f"Error calling inventory service to return room: {e}")
+
+        # Fetch hotel_name from inventory service
+        async with httpx.AsyncClient() as client:
+            hotel_name_url = f"{inventory_service_url}/hotel_name/{db_booking.hotel_id}"
+            hotel_resp = await client.get(hotel_name_url, timeout=5.0)
+            if hotel_resp.status_code == 200:
+                hotel_name = hotel_resp.json().get("hotel_name")
+            else:
+                hotel_name = None
+
+        booking_data = {
+            "booking_id": db_booking.booking_id,
+            "guest_name": db_booking.guest_name,
+            "hotel_name": hotel_name,
+            "arrival_date": db_booking.arrival_date,
+            "stay_length": db_booking.stay_length,
+            "check_out_date": db_booking.check_out_date,
+            "room_type": db_booking.room_type,
+            "adults": db_booking.adults,
+            "children": db_booking.children,
+            "meal_plan": db_booking.meal_plan,
+            "market_segment": db_booking.market_segment,
+            "is_weekend": db_booking.is_weekend,
+            "is_holiday": db_booking.is_holiday,
+            "booking_channel": db_booking.booking_channel,
+            "room_price": db_booking.room_price,
+            "reservation_status": db_booking.reservation_status,
+            "created_at": db_booking.created_at.date() if hasattr(db_booking.created_at, 'date') else db_booking.created_at
+        }
+        return booking_data
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error cancelling booking: {str(e)}", exc_info=True)
+        await db.rollback()
         raise HTTPException(status_code=500, detail=str(e)) 
