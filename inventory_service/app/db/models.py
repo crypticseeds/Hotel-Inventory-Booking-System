@@ -26,7 +26,6 @@ class Hotel(Base):
 class Inventory(Base):
     __tablename__ = "inventory"
 
-    inventory_id = Column(Integer, Identity(start=1), primary_key=True)
     hotel_id = Column(Integer, ForeignKey("hotel.hotel_id"), nullable=False)
     room_type = Column(String(50), nullable=False)
     date = Column(Date, nullable=False)
