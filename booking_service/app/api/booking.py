@@ -3,8 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..db.connection import get_db
 from ..schemas import BookingCreate, Booking
 from ..db.models import Booking as BookingModel
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import logging
+import httpx
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -29,6 +30,24 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
         await db.commit()
         await db.refresh(db_booking)
         logger.debug(f"Refreshed booking data: {db_booking.__dict__}")
+        
+        # Adjust inventory for each night of the stay
+        inventory_service_url = "http://localhost:8001/inventory"
+        for day in range(booking.stay_length):
+            adjust_date = booking.arrival_date + timedelta(days=day)
+            adjust_payload = {
+                "room_type": booking.room_type,
+                "date": str(adjust_date),
+                "num_rooms": 1
+            }
+            async with httpx.AsyncClient() as client:
+                adjust_url = f"{inventory_service_url}/{booking.hotel_id}/adjust"
+                try:
+                    resp = await client.post(adjust_url, json=adjust_payload, timeout=5.0)
+                    if resp.status_code != 200:
+                        logger.warning(f"Inventory adjustment failed for {adjust_payload}: {resp.text}")
+                except Exception as e:
+                    logger.warning(f"Error calling inventory service: {e}")
         
         # Convert the SQLAlchemy model instance to a dict with the exact fields expected by the Pydantic model
         booking_data = {

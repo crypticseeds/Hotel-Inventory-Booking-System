@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException, Body
 from typing import List, Optional
 from datetime import date
 from ..db.connection import get_db
-from ..service import get_inventory_by_hotel
+from ..service import get_inventory_by_hotel, adjust_inventory
 from ..schemas import Inventory, InventoryPublic
 from sqlalchemy.ext.asyncio import AsyncSession
+from pydantic import BaseModel
 
 router = APIRouter(
     prefix="/inventory",
@@ -36,4 +37,26 @@ async def get_hotel_inventory(
             "room_price": inv.room_price,
             "demand_level": inv.demand_level,
         })
-    return response 
+    return response
+
+class InventoryAdjustRequest(BaseModel):
+    room_type: str
+    date: date
+    num_rooms: int = 1
+
+@router.post("/{hotel_id}/adjust")
+async def adjust_inventory_endpoint(
+    hotel_id: int,
+    payload: InventoryAdjustRequest = Body(...),
+    db: AsyncSession = Depends(get_db),
+):
+    success = await adjust_inventory(
+        db,
+        hotel_id=hotel_id,
+        room_type=payload.room_type,
+        date=payload.date,
+        num_rooms=payload.num_rooms,
+    )
+    if not success:
+        raise HTTPException(status_code=400, detail="Not enough available rooms or invalid request.")
+    return {"success": True, "message": "Inventory adjusted."} 
