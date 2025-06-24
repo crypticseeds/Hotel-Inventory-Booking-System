@@ -20,4 +20,17 @@ class InventoryCreate(InventoryBase):
 
 class Inventory(InventoryBase):
     class Config:
+        from_attributes = True
+
+
+class InventoryPublic(BaseModel):
+    hotel_name: str = Field(..., max_length=100)
+    location: str = Field(..., max_length=100)
+    room_type: str = Field(..., max_length=50)
+    date: date
+    available_rooms: int = Field(..., ge=0)
+    room_price: Decimal = Field(..., max_digits=8, decimal_places=2)
+    demand_level: str | None = Field(None, max_length=20)
+
+    class Config:
         from_attributes = True 

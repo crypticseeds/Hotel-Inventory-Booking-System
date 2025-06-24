@@ -45,6 +45,20 @@ The API Gateway routes requests to the appropriate service based on the path.
 -   **`POST /inventory/`**: Creates a new inventory item.
     -   **Body**: `InventoryCreate` schema.
 -   **`GET /inventory/{item_id}`**: Retrieves a specific inventory item.
+-   **`GET /inventory/{hotel_id}`**: Retrieves all available rooms for a specific hotel. Returns a list of inventory items for the given hotel, each including:
+    - `hotel_id`: The unique hotel identifier
+    - `hotel_name`: The name of the hotel
+    - `location`: The location of the hotel
+    - `room_type`: The type of room (e.g., "deluxe", "suite")
+    - `date`: The date for which the inventory is available
+    - `available_rooms`: Number of available rooms of that type
+    - `room_price`: Price of the room
+    - `demand_level`: The forecasted demand level (if available)
+    - Supports optional query parameters `start_date` and `end_date` (YYYY-MM-DD) to filter inventory by date range.
+    - Example:
+      ```bash
+      curl "http://localhost:8002/inventory/111?start_date=2024-06-01&end_date=2024-06-30"
+      ```
 
 ### Booking Service (`/bookings`)
 
