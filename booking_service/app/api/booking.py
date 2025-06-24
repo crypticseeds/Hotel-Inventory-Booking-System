@@ -6,6 +6,7 @@ from ..db.models import Booking as BookingModel
 from datetime import date, datetime, timedelta
 import logging
 import httpx
+from sqlalchemy.future import select
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -16,9 +17,47 @@ router = APIRouter(
     tags=["bookings"],
 )
 
-@router.get("/")
+@router.get("/", response_model=list[Booking])
 async def read_bookings(db: AsyncSession = Depends(get_db)):
-    return [{"booking_id": "example"}]
+    try:
+        result = await db.execute(select(BookingModel))
+        bookings = result.scalars().all()
+        inventory_service_url = "http://localhost:8001/inventory"
+        booking_list = []
+        async with httpx.AsyncClient() as client:
+            for db_booking in bookings:
+                hotel_name = None
+                hotel_name_url = f"{inventory_service_url}/hotel_name/{db_booking.hotel_id}"
+                try:
+                    hotel_resp = await client.get(hotel_name_url, timeout=5.0)
+                    if hotel_resp.status_code == 200:
+                        hotel_name = hotel_resp.json().get("hotel_name")
+                except Exception as e:
+                    logger.warning(f"Error fetching hotel name for booking {db_booking.booking_id}: {e}")
+                booking_data = {
+                    "booking_id": db_booking.booking_id,
+                    "guest_name": db_booking.guest_name,
+                    "hotel_name": hotel_name,
+                    "arrival_date": db_booking.arrival_date,
+                    "stay_length": db_booking.stay_length,
+                    "check_out_date": db_booking.check_out_date,
+                    "room_type": db_booking.room_type,
+                    "adults": db_booking.adults,
+                    "children": db_booking.children,
+                    "meal_plan": db_booking.meal_plan,
+                    "market_segment": db_booking.market_segment,
+                    "is_weekend": db_booking.is_weekend,
+                    "is_holiday": db_booking.is_holiday,
+                    "booking_channel": db_booking.booking_channel,
+                    "room_price": db_booking.room_price,
+                    "reservation_status": db_booking.reservation_status,
+                    "created_at": db_booking.created_at.date() if hasattr(db_booking.created_at, 'date') else db_booking.created_at
+                }
+                booking_list.append(booking_data)
+        return booking_list
+    except Exception as e:
+        logger.error(f"Error fetching bookings: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/", response_model=Booking)
 async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_db)):
