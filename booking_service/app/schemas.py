@@ -19,6 +19,7 @@ class BookingBase(BaseModel):
     is_holiday: bool
     booking_channel: Optional[str] = Field(None, max_length=50)
     room_price: Optional[Decimal] = Field(None, max_digits=8, decimal_places=2, gt=0)
+    total_price: Optional[Decimal] = Field(None, max_digits=10, decimal_places=2, gt=0)
 
 
 class BookingCreate(BaseModel):

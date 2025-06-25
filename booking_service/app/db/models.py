@@ -46,6 +46,7 @@ class Booking(Base):
     booking_channel = Column(String(50), nullable=True)
     room_price = Column(Numeric(8, 2), nullable=False)
     reservation_status = Column(String(20), nullable=False)
+    total_price = Column(Numeric(10, 2), Computed("room_price * stay_length", persisted=True))
     created_at = Column(Date, server_default=func.current_date())
 
     __table_args__ = (

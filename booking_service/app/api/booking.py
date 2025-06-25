@@ -49,6 +49,7 @@ async def read_bookings(db: AsyncSession = Depends(get_db)):
                     "is_holiday": db_booking.is_holiday,
                     "booking_channel": db_booking.booking_channel,
                     "room_price": db_booking.room_price,
+                    "total_price": float(db_booking.room_price) * db_booking.stay_length if db_booking.room_price is not None and db_booking.stay_length is not None else None,
                     "reservation_status": db_booking.reservation_status,
                     "created_at": db_booking.created_at.date() if hasattr(db_booking.created_at, 'date') else db_booking.created_at
                 }
@@ -96,12 +97,12 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
             else:
                 raise HTTPException(status_code=400, detail="Failed to fetch inventory for room price.")
 
+        # Do not set check_out_date, as it is a generated column
         db_booking = BookingModel(**booking_dict)
         logger.debug(f"Created booking model: {db_booking.__dict__}")
         db.add(db_booking)
         await db.commit()
         await db.refresh(db_booking)
-        logger.debug(f"Refreshed booking data: {db_booking.__dict__}")
         
         # Adjust inventory for the booking (remove one room for the entire stay)
         inventory_service_url = "http://localhost:8001/inventory"
@@ -144,6 +145,7 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
             "is_holiday": db_booking.is_holiday,
             "booking_channel": db_booking.booking_channel,
             "room_price": db_booking.room_price,
+            "total_price": float(db_booking.room_price) * db_booking.stay_length if db_booking.room_price is not None and db_booking.stay_length is not None else None,
             "reservation_status": db_booking.reservation_status,
             "created_at": db_booking.created_at.date() if hasattr(db_booking.created_at, 'date') else db_booking.created_at
         }
@@ -189,6 +191,7 @@ async def get_booking_by_id(
             "is_holiday": db_booking.is_holiday,
             "booking_channel": db_booking.booking_channel,
             "room_price": db_booking.room_price,
+            "total_price": float(db_booking.room_price) * db_booking.stay_length if db_booking.room_price is not None and db_booking.stay_length is not None else None,
             "reservation_status": db_booking.reservation_status,
             "created_at": db_booking.created_at.date() if hasattr(db_booking.created_at, 'date') else db_booking.created_at
         }
@@ -256,6 +259,7 @@ async def cancel_booking(
             "is_holiday": db_booking.is_holiday,
             "booking_channel": db_booking.booking_channel,
             "room_price": db_booking.room_price,
+            "total_price": float(db_booking.room_price) * db_booking.stay_length if db_booking.room_price is not None and db_booking.stay_length is not None else None,
             "reservation_status": db_booking.reservation_status,
             "created_at": db_booking.created_at.date() if hasattr(db_booking.created_at, 'date') else db_booking.created_at
         }
@@ -283,6 +287,8 @@ async def update_booking(
         update_data = booking_update.dict(exclude_unset=True)
         for field, value in update_data.items():
             setattr(db_booking, field, value)
+
+        # Removed check_out_date update since it is a generated column
 
         await db.commit()
         await db.refresh(db_booking)
@@ -312,6 +318,7 @@ async def update_booking(
             "is_holiday": db_booking.is_holiday,
             "booking_channel": db_booking.booking_channel,
             "room_price": db_booking.room_price,
+            "total_price": float(db_booking.room_price) * db_booking.stay_length if db_booking.room_price is not None and db_booking.stay_length is not None else None,
             "reservation_status": db_booking.reservation_status,
             "created_at": db_booking.created_at.date() if hasattr(db_booking.created_at, 'date') else db_booking.created_at
         }
