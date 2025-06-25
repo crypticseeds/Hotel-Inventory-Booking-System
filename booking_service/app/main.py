@@ -30,7 +30,3 @@ app.include_router(booking.router)
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Booking Service"}
-
-@app.get("/sentry-debug")
-async def trigger_error():
-    division_by_zero = 1 / 0

@@ -66,6 +66,8 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
         booking_dict = booking.dict()
         if 'hotel_name' in booking_dict:
             booking_dict.pop('hotel_name')
+        # Set reservation_status to 'confirmed' automatically
+        booking_dict['reservation_status'] = 'confirmed'
         db_booking = BookingModel(**booking_dict)
         logger.debug(f"Created booking model: {db_booking.__dict__}")
         db.add(db_booking)
@@ -127,7 +129,7 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
 
 @router.get("/{booking_id}", response_model=Booking)
 async def get_booking_by_id(
-    booking_id: str = Path(..., description="The UUID of the booking"),
+    booking_id: str = Path(..., description="The 7-character booking ID"),
     db: AsyncSession = Depends(get_db)
 ):
     try:
@@ -173,7 +175,7 @@ async def get_booking_by_id(
 
 @router.delete("/{booking_id}", response_model=Booking)
 async def cancel_booking(
-    booking_id: str = Path(..., description="The UUID of the booking to cancel"),
+    booking_id: str = Path(..., description="The 7-character booking ID to cancel"),
     db: AsyncSession = Depends(get_db)
 ):
     try:
@@ -184,7 +186,7 @@ async def cancel_booking(
             raise HTTPException(status_code=400, detail="Booking is already cancelled")
 
         # Mark as cancelled
-        object.__setattr__(db_booking, 'reservation_status', 'cancelled')
+        db_booking.reservation_status = 'cancelled'  # type: ignore[attr-defined]
         await db.commit()
         await db.refresh(db_booking)
 
@@ -242,7 +244,7 @@ async def cancel_booking(
 
 @router.patch("/{booking_id}", response_model=Booking)
 async def update_booking(
-    booking_id: str = Path(..., description="The UUID of the booking to update"),
+    booking_id: str = Path(..., description="The 7-character booking ID to update"),
     booking_update: BookingUpdate = Body(...),
     db: AsyncSession = Depends(get_db)
 ):

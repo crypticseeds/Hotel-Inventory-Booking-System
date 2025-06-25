@@ -1,7 +1,6 @@
 from pydantic import BaseModel, Field
 from datetime import date
 from decimal import Decimal
-from uuid import UUID
 from typing import Optional, Any
 
 
@@ -19,7 +18,6 @@ class BookingBase(BaseModel):
     is_holiday: bool
     booking_channel: Optional[str] = Field(None, max_length=50)
     room_price: Decimal = Field(..., max_digits=8, decimal_places=2, gt=0)
-    reservation_status: str = Field(..., max_length=20)
 
 
 class BookingCreate(BookingBase):
@@ -28,9 +26,10 @@ class BookingCreate(BookingBase):
 
 
 class Booking(BookingBase):
-    booking_id: UUID
+    booking_id: str
     check_out_date: date
     created_at: date
+    reservation_status: str = Field(..., max_length=20)
 
     class Config:
         from_attributes = True

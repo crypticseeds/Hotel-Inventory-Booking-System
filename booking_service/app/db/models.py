@@ -16,6 +16,8 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import declarative_base
 import uuid
 from datetime import date
+import random
+import string
 
 Base = declarative_base()
 
@@ -23,7 +25,10 @@ Base = declarative_base()
 class Booking(Base):
     __tablename__ = "booking"
 
-    booking_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    def generate_booking_id():
+        return ''.join(random.choices(string.ascii_uppercase + string.digits, k=7))
+
+    booking_id = Column(String(7), primary_key=True, default=generate_booking_id, unique=True)
     guest_name = Column(String(100), nullable=False)
     hotel_id = Column(Integer, nullable=False)
     arrival_date = Column(Date, nullable=False)

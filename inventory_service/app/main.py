@@ -6,6 +6,7 @@ from .api import inventory
 from .db.connection import engine, AsyncSessionLocal
 from .db.models import Base
 from .sample_data import populate_sample_inventory
+import logging
 
 sentry_sdk.init(
     dsn="https://83433629f852f978cdd9a00d9bef78e6@o4509558402318336.ingest.de.sentry.io/4509558404677712",  # Same DSN as booking_service
@@ -21,6 +22,10 @@ app = FastAPI(
     title="Inventory Service"
 )
 
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 @app.on_event("startup")
 async def startup_event():
     async with engine.begin() as conn:
@@ -34,7 +39,3 @@ app.include_router(inventory.router)
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Inventory Service"}
-
-@app.get("/sentry-debug")
-async def trigger_error():
-    division_by_zero = 1 / 0 
