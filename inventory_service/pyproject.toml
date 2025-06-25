@@ -12,6 +12,8 @@ dependencies = [
     "pydantic-settings",
     "python-dotenv",
     "faker",
+    "sentry-sdk[fastapi]>=2.31.0",
+    "uvicorn[standard]",
 ]
 
 [tool.setuptools]

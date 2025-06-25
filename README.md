@@ -2,6 +2,12 @@
 
 This project is a microservices-based application for managing hotel inventory and bookings. It's designed to be scalable and maintainable, with a clear separation of concerns between services.
 
+## Tools
+FastAPI
+Sentry
+Postres(Neon Postgress)
+UV
+
 ## Project Architecture
 
 The application is composed of three main components:
@@ -203,3 +209,4 @@ If a booking is made for `2024-07-01`, `2024-07-02`, or any future date, the sam
 
 future enhancements:
 - Enforce idempotency for POST /booking to avoid duplicates.
+- service to service commnuication via message broker like kafka, eventbridge. 

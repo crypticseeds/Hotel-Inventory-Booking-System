@@ -10,7 +10,9 @@ dependencies = [
     "asyncpg",
     "psycopg2-binary",
     "pydantic-settings",
-    "python-dotenv"
+    "python-dotenv",
+    "sentry-sdk[fastapi]>=2.31.0",
+    "uvicorn[standard]",
 ]
 
 [tool.setuptools]
