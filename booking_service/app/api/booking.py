@@ -77,6 +77,25 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
                 is_weekend = True
                 break
         booking_dict['is_weekend'] = is_weekend
+
+        # Always fetch room_price from inventory
+        inventory_service_url = "http://localhost:8001/inventory"
+        inventory_url = f"{inventory_service_url}/{booking.hotel_id}"
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(inventory_url, params={"start_date": str(booking.arrival_date), "end_date": str(booking.arrival_date)})
+            if resp.status_code == 200:
+                inventory_list = resp.json()
+                price_found = False
+                for item in inventory_list:
+                    if item["room_type"] == booking.room_type and str(item["date"]) == str(booking.arrival_date):
+                        booking_dict["room_price"] = item["room_price"]
+                        price_found = True
+                        break
+                if not price_found:
+                    raise HTTPException(status_code=400, detail="Room price not found in inventory for the given hotel, room type, and date.")
+            else:
+                raise HTTPException(status_code=400, detail="Failed to fetch inventory for room price.")
+
         db_booking = BookingModel(**booking_dict)
         logger.debug(f"Created booking model: {db_booking.__dict__}")
         db.add(db_booking)
