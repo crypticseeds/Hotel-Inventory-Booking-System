@@ -46,7 +46,6 @@ async def read_bookings(db: AsyncSession = Depends(get_db)):
                     "children": db_booking.children,
                     "meal_plan": db_booking.meal_plan,
                     "market_segment": db_booking.market_segment,
-                    "is_weekend": db_booking.is_weekend,
                     "is_holiday": db_booking.is_holiday,
                     "booking_channel": db_booking.booking_channel,
                     "room_price": db_booking.room_price,
@@ -68,6 +67,16 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
             booking_dict.pop('hotel_name')
         # Set reservation_status to 'confirmed' automatically
         booking_dict['reservation_status'] = 'confirmed'
+        # Automatically calculate is_weekend
+        arrival = booking.arrival_date
+        stay = booking.stay_length
+        is_weekend = False
+        for i in range(stay):
+            day = arrival + timedelta(days=i)
+            if day.weekday() in [5, 6]:  # Saturday=5, Sunday=6
+                is_weekend = True
+                break
+        booking_dict['is_weekend'] = is_weekend
         db_booking = BookingModel(**booking_dict)
         logger.debug(f"Created booking model: {db_booking.__dict__}")
         db.add(db_booking)
@@ -113,7 +122,6 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
             "children": db_booking.children,
             "meal_plan": db_booking.meal_plan,
             "market_segment": db_booking.market_segment,
-            "is_weekend": db_booking.is_weekend,
             "is_holiday": db_booking.is_holiday,
             "booking_channel": db_booking.booking_channel,
             "room_price": db_booking.room_price,
@@ -159,7 +167,6 @@ async def get_booking_by_id(
             "children": db_booking.children,
             "meal_plan": db_booking.meal_plan,
             "market_segment": db_booking.market_segment,
-            "is_weekend": db_booking.is_weekend,
             "is_holiday": db_booking.is_holiday,
             "booking_channel": db_booking.booking_channel,
             "room_price": db_booking.room_price,
@@ -227,7 +234,6 @@ async def cancel_booking(
             "children": db_booking.children,
             "meal_plan": db_booking.meal_plan,
             "market_segment": db_booking.market_segment,
-            "is_weekend": db_booking.is_weekend,
             "is_holiday": db_booking.is_holiday,
             "booking_channel": db_booking.booking_channel,
             "room_price": db_booking.room_price,
@@ -284,7 +290,6 @@ async def update_booking(
             "children": db_booking.children,
             "meal_plan": db_booking.meal_plan,
             "market_segment": db_booking.market_segment,
-            "is_weekend": db_booking.is_weekend,
             "is_holiday": db_booking.is_holiday,
             "booking_channel": db_booking.booking_channel,
             "room_price": db_booking.room_price,

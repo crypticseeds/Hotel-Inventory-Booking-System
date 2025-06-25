@@ -14,7 +14,6 @@ class BookingBase(BaseModel):
     children: int = Field(..., ge=0)
     meal_plan: Optional[str] = Field(None, max_length=50)
     market_segment: Optional[str] = Field(None, max_length=50)
-    is_weekend: bool
     is_holiday: bool
     booking_channel: Optional[str] = Field(None, max_length=50)
     room_price: Decimal = Field(..., max_digits=8, decimal_places=2, gt=0)
