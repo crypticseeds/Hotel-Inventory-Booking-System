@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.md
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
+*.egg-info/
+uv.lock 

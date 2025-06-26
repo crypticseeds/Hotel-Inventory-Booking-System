@@ -29,7 +29,7 @@ async def read_bookings(db: AsyncSession = Depends(get_db)):
     try:
         result = await db.execute(select(BookingModel))
         bookings = result.scalars().all()
-        inventory_service_url = "http://localhost:8001/inventory"
+        inventory_service_url = "http://inventory_service:8000/inventory"
         booking_list = []
         async with httpx.AsyncClient() as client:
             for db_booking in bookings:
@@ -87,7 +87,7 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
         booking_dict['is_weekend'] = is_weekend
 
         # Always fetch room_price from inventory
-        inventory_service_url = "http://localhost:8001/inventory"
+        inventory_service_url = "http://inventory_service:8000/inventory"
         inventory_url = f"{inventory_service_url}/{booking.hotel_id}"
         async with httpx.AsyncClient() as client:
             resp = await client.get(inventory_url, params={"start_date": str(booking.arrival_date), "end_date": str(booking.arrival_date)})
@@ -112,7 +112,7 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
         await db.refresh(db_booking)
         
         # Adjust inventory for the booking (remove one room for the entire stay)
-        inventory_service_url = "http://localhost:8001/inventory"
+        inventory_service_url = "http://inventory_service:8000/inventory"
         adjust_payload = {
             "room_type": booking.room_type,
             "date": str(booking.arrival_date),
@@ -174,7 +174,7 @@ async def get_booking_by_id(
             raise HTTPException(status_code=404, detail="Booking not found")
 
         # Fetch hotel_name from inventory service
-        inventory_service_url = "http://localhost:8001/inventory"
+        inventory_service_url = "http://inventory_service:8000/inventory"
         async with httpx.AsyncClient() as client:
             hotel_name_url = f"{inventory_service_url}/hotel_name/{db_booking.hotel_id}"
             hotel_resp = await client.get(hotel_name_url, timeout=5.0)
@@ -227,7 +227,7 @@ async def cancel_booking(
         await db.refresh(db_booking)
 
         # Return one room to inventory (for the entire stay)
-        inventory_service_url = "http://localhost:8001/inventory"
+        inventory_service_url = "http://inventory_service:8000/inventory"
         adjust_payload = {
             "room_type": db_booking.room_type,
             "date": str(db_booking.arrival_date),
@@ -301,7 +301,7 @@ async def update_booking(
         await db.refresh(db_booking)
 
         # Fetch hotel_name from inventory service
-        inventory_service_url = "http://localhost:8001/inventory"
+        inventory_service_url = "http://inventory_service:8000/inventory"
         async with httpx.AsyncClient() as client:
             hotel_name_url = f"{inventory_service_url}/hotel_name/{db_booking.hotel_id}"
             hotel_resp = await client.get(hotel_name_url, timeout=5.0)
