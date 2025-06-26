@@ -68,6 +68,11 @@ def generate_inventory_data():
     return data
 
 async def populate_sample_inventory(session):
+    # Only populate if Inventory table is empty
+    inventory_count = await session.execute(select(Inventory))
+    if inventory_count.scalars().first() is not None:
+        return  # Inventory table is not empty, skip population
+
     # Insert hotels if not already present
     for hotel in hotel_info:
         db_hotel = await session.get(Hotel, hotel["hotel_id"])
