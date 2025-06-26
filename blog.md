@@ -102,3 +102,5 @@ This section details the creation of the database schema for the `inventory_serv
 - `get_inventory_by_hotel`, `adjust_inventory`, `get_hotel_name_by_id`: Inventory service logic.
 
 This section provides a reference for all endpoints, libraries, and core FastAPI features used in this microservice project, supporting both learning and future development.
+
+privacvy in logging: PII Filtering: The guest_name field is masked as [REDACTED] in all logs, and a utility is in place to mask this field in any dictionary logged.

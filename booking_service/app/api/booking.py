@@ -17,6 +17,13 @@ router = APIRouter(
     tags=["bookings"],
 )
 
+# Utility to mask PII in dicts
+PII_FIELDS = ['guest_name']
+def mask_pii(data):
+    if isinstance(data, dict):
+        return {k: ('[REDACTED]' if k in PII_FIELDS else v) for k, v in data.items()}
+    return data
+
 @router.get("/", response_model=list[Booking])
 async def read_bookings(db: AsyncSession = Depends(get_db)):
     try:
@@ -36,7 +43,7 @@ async def read_bookings(db: AsyncSession = Depends(get_db)):
                     logger.warning(f"Error fetching hotel name for booking {db_booking.booking_id}: {e}")
                 booking_data = {
                     "booking_id": db_booking.booking_id,
-                    "guest_name": db_booking.guest_name,
+                    "guest_name": '[REDACTED]',  # Mask PII
                     "hotel_name": hotel_name,
                     "arrival_date": db_booking.arrival_date,
                     "stay_length": db_booking.stay_length,
@@ -62,7 +69,7 @@ async def read_bookings(db: AsyncSession = Depends(get_db)):
 @router.post("/", response_model=Booking)
 async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_db)):
     try:
-        logger.debug(f"Received booking data: {booking.dict()}")
+        logger.debug(f"Received booking data: {mask_pii(booking.dict())}")
         booking_dict = booking.dict()
         if 'hotel_name' in booking_dict:
             booking_dict.pop('hotel_name')
@@ -99,7 +106,7 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
 
         # Do not set check_out_date, as it is a generated column
         db_booking = BookingModel(**booking_dict)
-        logger.debug(f"Created booking model: {db_booking.__dict__}")
+        logger.debug(f"Created booking model: {mask_pii(db_booking.__dict__)}")
         db.add(db_booking)
         await db.commit()
         await db.refresh(db_booking)
@@ -132,7 +139,7 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
         # Convert the SQLAlchemy model instance to a dict with the exact fields expected by the Pydantic model
         booking_data = {
             "booking_id": db_booking.booking_id,
-            "guest_name": db_booking.guest_name,
+            "guest_name": '[REDACTED]',  # Mask PII
             "hotel_name": hotel_name,
             "arrival_date": db_booking.arrival_date,
             "stay_length": db_booking.stay_length,
@@ -149,7 +156,7 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
             "reservation_status": db_booking.reservation_status,
             "created_at": db_booking.created_at.date() if hasattr(db_booking.created_at, 'date') else db_booking.created_at
         }
-        logger.debug(f"Final response data: {booking_data}")
+        logger.debug(f"Final response data: {mask_pii(booking_data)}")
         return booking_data
     except Exception as e:
         logger.error(f"Error creating booking: {str(e)}", exc_info=True)
@@ -178,7 +185,7 @@ async def get_booking_by_id(
 
         booking_data = {
             "booking_id": db_booking.booking_id,
-            "guest_name": db_booking.guest_name,
+            "guest_name": '[REDACTED]',  # Mask PII
             "hotel_name": hotel_name,
             "arrival_date": db_booking.arrival_date,
             "stay_length": db_booking.stay_length,
@@ -246,7 +253,7 @@ async def cancel_booking(
 
         booking_data = {
             "booking_id": db_booking.booking_id,
-            "guest_name": db_booking.guest_name,
+            "guest_name": '[REDACTED]',  # Mask PII
             "hotel_name": hotel_name,
             "arrival_date": db_booking.arrival_date,
             "stay_length": db_booking.stay_length,
@@ -305,7 +312,7 @@ async def update_booking(
 
         booking_data = {
             "booking_id": db_booking.booking_id,
-            "guest_name": db_booking.guest_name,
+            "guest_name": '[REDACTED]',  # Mask PII
             "hotel_name": hotel_name,
             "arrival_date": db_booking.arrival_date,
             "stay_length": db_booking.stay_length,

@@ -8,6 +8,10 @@ This project is a microservices-based application for managing hotel inventory a
 - PostgreSQL (Neon Postgres)
 - Uvicorn
 - Docker & Docker Compose
+- Opentelemetry
+- Loki
+- Prometeus 
+- Grafana
 
 ## Project Architecture
 
