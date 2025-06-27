@@ -9,6 +9,8 @@ services:
       - "8002:8000"
     environment:
       - DATABASE_URL=${DATABASE_URL}
+      - SENTRY_DSN=${SENTRY_DSN}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     networks:
       - backend
 
@@ -20,8 +22,35 @@ services:
       - "8001:8000"
     environment:
       - DATABASE_URL=${DATABASE_URL}
+      - SENTRY_DSN=${SENTRY_DSN}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+
     networks:
       - backend
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    user: "0:0"
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol/config.yaml
+      - /var/run/docker.sock:/var/run/docker.sock
+      # - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: ["--config=/etc/otelcol/config.yaml"]
+    environment:
+      - GRAFANA_CLOUD_INSTANCE_ID=${GRAFANA_CLOUD_INSTANCE_ID}
+      - GRAFANA_CLOUD_OTLP_ENDPOINT=${GRAFANA_CLOUD_OTLP_ENDPOINT}
+      - GRAFANA_CLOUD_API_KEY=${GRAFANA_CLOUD_API_KEY}
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    depends_on:
+      - booking_service
+      - inventory_service
+
+    networks:
+      - backend
+
+
 
 networks:
   backend:

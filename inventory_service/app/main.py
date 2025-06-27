@@ -15,10 +15,14 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry import trace
+from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
+from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
+from opentelemetry import _logs
 import os
 
 sentry_sdk.init(
-    dsn="https://83433629f852f978cdd9a00d9bef78e6@o4509558402318336.ingest.de.sentry.io/4509558404677712",  # Same DSN as booking_service
+    dsn=os.getenv('SENTRY_DSN'),
     send_default_pii=True,
     traces_sample_rate=1.0,
     integrations=[
@@ -70,13 +74,22 @@ class ServiceLogFilter(logging.Filter):
 root_logger.addFilter(ServiceLogFilter())
 
 # --- OpenTelemetry Tracing Setup ---
-otlp_endpoint = os.getenv('OTEL_EXPORTER_OTLP_ENDPOINT', 'http://localhost:4317')
+otlp_endpoint = os.getenv('OTEL_EXPORTER_OTLP_ENDPOINT', 'http://otel-collector:4317')
 resource = Resource(attributes={SERVICE_NAME: 'inventory-service'})
 provider = TracerProvider(resource=resource)
 otlp_exporter = OTLPSpanExporter(endpoint=otlp_endpoint, insecure=True)
 span_processor = BatchSpanProcessor(otlp_exporter)
 provider.add_span_processor(span_processor)
 trace.set_tracer_provider(provider)
+
+# --- OpenTelemetry Logging Setup ---
+otlp_log_exporter = OTLPLogExporter(endpoint=otlp_endpoint, insecure=True)
+log_provider = LoggerProvider(resource=resource)
+log_provider.add_log_record_processor(BatchLogRecordProcessor(otlp_log_exporter))
+_logs.set_logger_provider(log_provider)
+
+otel_handler = LoggingHandler(level=logging.NOTSET, logger_provider=log_provider)
+root_logger.addHandler(otel_handler)
 
 # Instrument logging and FastAPI
 LoggingInstrumentor().instrument(set_logging_format=False)
