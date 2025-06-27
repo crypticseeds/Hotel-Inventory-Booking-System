@@ -86,21 +86,27 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
                 break
         booking_dict['is_weekend'] = is_weekend
 
-        # Always fetch room_price from inventory
+        # New inventory logic: fetch inventory for hotel and room type, ignore date
         inventory_service_url = "http://inventory_service:8000/inventory"
         inventory_url = f"{inventory_service_url}/{booking.hotel_id}"
         async with httpx.AsyncClient() as client:
-            resp = await client.get(inventory_url, params={"start_date": str(booking.arrival_date), "end_date": str(booking.arrival_date)})
+            resp = await client.get(inventory_url)
             if resp.status_code == 200:
                 inventory_list = resp.json()
-                price_found = False
+                inventory_row = None
                 for item in inventory_list:
-                    if item["room_type"] == booking.room_type and str(item["date"]) == str(booking.arrival_date):
-                        booking_dict["room_price"] = item["room_price"]
-                        price_found = True
+                    if item["room_type"] == booking.room_type:
+                        inventory_row = item
                         break
-                if not price_found:
-                    raise HTTPException(status_code=400, detail="Room price not found in inventory for the given hotel, room type, and date.")
+                if not inventory_row:
+                    raise HTTPException(status_code=400, detail="Room type not found in inventory for the given hotel.")
+                # Check available_rooms and arrival_date
+                from datetime import date as dt_date
+                if inventory_row["available_rooms"] < 1:
+                    raise HTTPException(status_code=400, detail="No available rooms for the selected room type.")
+                if booking.arrival_date < dt_date.today():
+                    raise HTTPException(status_code=400, detail="Cannot book for a past date.")
+                booking_dict["room_price"] = inventory_row["room_price"]
             else:
                 raise HTTPException(status_code=400, detail="Failed to fetch inventory for room price.")
 
@@ -111,11 +117,10 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
         await db.commit()
         await db.refresh(db_booking)
         
-        # Adjust inventory for the booking (remove one room for the entire stay)
-        inventory_service_url = "http://inventory_service:8000/inventory"
+        # Adjust inventory for the booking (remove one room for the room type)
         adjust_payload = {
             "room_type": booking.room_type,
-            "date": str(booking.arrival_date),
+            "date": str(inventory_row["date"]),  # Use the date from inventory row
             "num_rooms": 1
         }
         async with httpx.AsyncClient() as client:

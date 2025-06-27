@@ -1,29 +1,3 @@
-# receivers:
-#   otlp:
-#     protocols:
-#       grpc:
-#       http:
-
-# exporters:
-#   otlp:
-#     endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}
-#     headers:
-#       "Authorization": "Bearer ${GRAFANA_CLOUD_API_KEY}"
-#     tls:
-#       insecure: false
-
-# service:
-#   pipelines:
-#     logs:
-#       receivers: [otlp]
-#       exporters: [otlp]
-#     traces:
-#       receivers: [otlp]
-#       exporters: [otlp]
-#     metrics:
-#       receivers: [otlp]
-#       exporters: [otlp]
-
 
 receivers:
   otlp:
@@ -47,7 +21,7 @@ processors:
     trace_statements:
       - context: resource
         statements:
-          - delete_key(attributes, "k8s.pod.start_time")
+          - delete_key(attributes, "k9s.pod.start_time")
           - delete_key(attributes, "os.description")
           - delete_key(attributes, "os.type")
           - delete_key(attributes, "process.command_args")
@@ -59,7 +33,7 @@ processors:
     metric_statements:
       - context: resource
         statements:
-          - delete_key(attributes, "k8s.pod.start_time")
+          - delete_key(attributes, "k9s.pod.start_time")
           - delete_key(attributes, "os.description")
           - delete_key(attributes, "os.type")
           - delete_key(attributes, "process.command_args")
@@ -71,7 +45,7 @@ processors:
     log_statements:
       - context: resource
         statements:
-          - delete_key(attributes, "k8s.pod.start_time")
+          - delete_key(attributes, "k9s.pod.start_time")
           - delete_key(attributes, "os.description")
           - delete_key(attributes, "os.type")
           - delete_key(attributes, "process.command_args")
