@@ -115,3 +115,40 @@ A new feature has been added to the booking service using APScheduler:
 - **Booking Status Update:** The booking's reservation status is updated to 'completed'.
 
 This automation ensures that rooms are returned to inventory after guests check out, keeping the inventory accurate without manual intervention.
+
+# Dashboard Improvements Log
+
+## Latest Updates
+
+### 1. Standardized Color Scheme
+- All panels now use a consistent color palette (green/yellow/orange/red/blue) for clarity and quick interpretation.
+
+### 2. Endpoint Filtering
+- Visualizations are now filtered to only show key API endpoints for Booking and Inventory services, reducing clutter from dynamic paths and payloads.
+- PromQL regex is used to include only the desired endpoints in metrics panels.
+
+### 3. 24h Time Range
+- Key panels (requests, errors, booking failure ratio, etc.) are set to always display data from the last 24 hours using `"timeFrom": "24h"`.
+- Panel titles are now clean and do not repeat the time range.
+
+### 4. Auto-Refresh
+- Dashboard refresh interval is set to 10 seconds for near real-time updates.
+- Panels auto-refresh and do not require manual query execution.
+
+### 5. Separate Loki Log Panels
+- Two dedicated log panels have been added:
+  - **Booking Service Logs**: Shows logs for the booking-service only.
+  - **Inventory Service Logs**: Shows logs for the inventory-service only.
+- Each panel uses the Loki data source and is customized for service-specific log queries.
+
+---
+
+**Benefits:**
+- Cleaner, more actionable observability for both services.
+- Easier troubleshooting with service-specific logs and metrics.
+- Consistent, professional dashboard appearance.
+- No more manual query refreshes needed.
+
+---
+
+*Last updated: 2025-06-27*
