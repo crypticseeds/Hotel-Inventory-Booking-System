@@ -7,6 +7,7 @@ from datetime import date, datetime, timedelta
 import logging
 import httpx
 from sqlalchemy.future import select
+from ..monitoring import db_connection_errors_counter, booking_failure_ratio_counter, resource
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -99,15 +100,19 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
                         inventory_row = item
                         break
                 if not inventory_row:
+                    booking_failure_ratio_counter.add(1, {"service": resource.attributes.get("service.name", "unknown")})
                     raise HTTPException(status_code=400, detail="Room type not found in inventory for the given hotel.")
                 # Check available_rooms and arrival_date
                 from datetime import date as dt_date
                 if inventory_row["available_rooms"] < 1:
+                    booking_failure_ratio_counter.add(1, {"service": resource.attributes.get("service.name", "unknown")})
                     raise HTTPException(status_code=400, detail="No available rooms for the selected room type.")
                 if booking.arrival_date < dt_date.today():
+                    booking_failure_ratio_counter.add(1, {"service": resource.attributes.get("service.name", "unknown")})
                     raise HTTPException(status_code=400, detail="Cannot book for a past date.")
                 booking_dict["room_price"] = inventory_row["room_price"]
             else:
+                booking_failure_ratio_counter.add(1, {"service": resource.attributes.get("service.name", "unknown")})
                 raise HTTPException(status_code=400, detail="Failed to fetch inventory for room price.")
 
         # Do not set check_out_date, as it is a generated column
@@ -116,6 +121,7 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
         db.add(db_booking)
         await db.commit()
         await db.refresh(db_booking)
+        booking_failure_ratio_counter.add(-1, {"service": resource.attributes.get("service.name", "unknown")})
         
         # Adjust inventory for the booking (remove one room for the room type)
         adjust_payload = {
@@ -165,7 +171,11 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
         return booking_data
     except Exception as e:
         logger.error(f"Error creating booking: {str(e)}", exc_info=True)
-        await db.rollback()
+        try:
+            await db.rollback()
+        except Exception as db_rollback_exc:
+            db_connection_errors_counter.add(1, {"service": resource.attributes.get("service.name", "unknown")})
+        booking_failure_ratio_counter.add(1, {"service": resource.attributes.get("service.name", "unknown")})
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{booking_id}", response_model=Booking)

@@ -3,10 +3,15 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 from .models import Base
+from ..monitoring import db_connection_errors_counter, resource
 
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    db_connection_errors_counter.add(1, {"service": resource.attributes.get("service.name", "unknown")})
+    raise ValueError("DATABASE_URL environment variable not set")
 
 engine = create_async_engine(DATABASE_URL, echo=True)
 
@@ -20,5 +25,9 @@ async def create_tables():
         await conn.run_sync(Base.metadata.create_all)
 
 async def get_db() -> AsyncSession:
-    async with AsyncSessionLocal() as session:
-        yield session 
+    try:
+        async with AsyncSessionLocal() as session:
+            yield session
+    except Exception as e:
+        db_connection_errors_counter.add(1, {"service": resource.attributes.get("service.name", "unknown")})
+        raise 

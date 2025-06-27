@@ -1,4 +1,3 @@
-
 receivers:
   otlp:
     protocols:
@@ -10,6 +9,8 @@ receivers:
 processors:
   batch:
     # https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor/batchprocessor
+    timeout: 60s
+    send_batch_size: 1000
   resourcedetection:
     # Enriches telemetry data with resource information from the host
     # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor
