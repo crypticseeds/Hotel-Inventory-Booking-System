@@ -134,6 +134,6 @@ async def return_rooms_after_checkout():
                     await client.post(adjust_url, json=adjust_payload, timeout=5.0)
                 except Exception as e:
                     pass  # Optionally log error
-            # Update booking status to 'completed'
-            booking.reservation_status = 'completed'
+            # Update booking status to 'checked-out'
+            booking.reservation_status = 'checked-out'
         await db.commit()
