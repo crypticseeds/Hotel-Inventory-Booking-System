@@ -104,3 +104,14 @@ This section details the creation of the database schema for the `inventory_serv
 This section provides a reference for all endpoints, libraries, and core FastAPI features used in this microservice project, supporting both learning and future development.
 
 privacvy in logging: PII Filtering: The guest_name field is masked as [REDACTED] in all logs, and a utility is in place to mask this field in any dictionary logged.
+
+## Scheduled Task: Automatic Room Return After Checkout
+
+A new feature has been added to the booking service using APScheduler:
+
+- **Daily Job:** APScheduler runs a background job every day when the FastAPI app is running.
+- **Booking Check:** The job finds all bookings where the check-out date is in the past and the reservation status is still 'confirmed'.
+- **Inventory Update:** For each such booking, the system automatically returns the room to inventory by incrementing `available_rooms` by 1 for the corresponding hotel and room type.
+- **Booking Status Update:** The booking's reservation status is updated to 'completed'.
+
+This automation ensures that rooms are returned to inventory after guests check out, keeping the inventory accurate without manual intervention.

@@ -19,6 +19,10 @@ from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
 from opentelemetry import _logs
 import os
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from sqlalchemy.future import select
+import httpx
+from datetime import date as dt_date
 
 sentry_sdk.init(
     dsn=os.getenv('SENTRY_DSN'),
@@ -38,6 +42,10 @@ app = FastAPI(
 async def startup_event():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    # Start APScheduler
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(return_rooms_after_checkout, 'interval', days=1)
+    scheduler.start()
 
 app.include_router(booking.router)
 
@@ -99,3 +107,33 @@ root_logger.addHandler(otel_handler)
 
 # Instrument logging and FastAPI
 LoggingInstrumentor().instrument(set_logging_format=False)
+
+async def return_rooms_after_checkout():
+    from .db.connection import AsyncSessionLocal
+    from .db.models import Booking as BookingModel
+    async with AsyncSessionLocal() as db:
+        # Find bookings with check_out_date < today and reservation_status == 'confirmed'
+        result = await db.execute(
+            select(BookingModel).where(
+                BookingModel.check_out_date < dt_date.today(),
+                BookingModel.reservation_status == 'confirmed'
+            )
+        )
+        bookings = result.scalars().all()
+        for booking in bookings:
+            # Call inventory service to increment available_rooms
+            inventory_service_url = "http://inventory_service:8000/inventory"
+            adjust_url = f"{inventory_service_url}/{booking.hotel_id}/adjust"
+            adjust_payload = {
+                "room_type": booking.room_type,
+                "date": str(booking.arrival_date),  # Use arrival_date as reference
+                "num_rooms": -1  # -1 to increment (reverse of booking)
+            }
+            async with httpx.AsyncClient() as client:
+                try:
+                    await client.post(adjust_url, json=adjust_payload, timeout=5.0)
+                except Exception as e:
+                    pass  # Optionally log error
+            # Update booking status to 'completed'
+            booking.reservation_status = 'completed'
+        await db.commit()
