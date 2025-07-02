@@ -7,9 +7,8 @@ replicaCount: 1
 
 # Image configuration
 image:
-  repository: booking-service  # Docker image repository
-  pullPolicy: IfNotPresent     # Image pull policy (Always, IfNotPresent, Never)
-  tag: ""                     # Image tag (defaults to chart appVersion if empty)
+  repository: crypticseeds/hotel-inventory-booking-system-booking-service
+  tag: latest
 
 # Image pull secrets for private registries
 imagePullSecrets: []           # List of image pull secrets
@@ -44,8 +43,9 @@ securityContext: {}            # Security context for the container
 
 # Service configuration
 service:
-  type: ClusterIP              # Service type (ClusterIP, NodePort, LoadBalancer)
-  port: 8002                   # Service port
+  type: NodePort
+  port: 8000
+  nodePort: 32725
 
 # Ingress configuration
 ingress:
@@ -73,27 +73,31 @@ resources:
     cpu: 100m
     memory: 128Mi
 
-# Liveness probe configuration
-livenessProbe:
-  httpGet:
-    path: /healthz
-    port: http
-  initialDelaySeconds: 10
-  periodSeconds: 10
-  timeoutSeconds: 2
-  failureThreshold: 3
-  successThreshold: 1
+# Liveness and readiness probes
+livenessProbe: {}
+readinessProbe: {}
 
-# Readiness probe configuration
-readinessProbe:
-  httpGet:
-    path: /readyz
-    port: http
-  initialDelaySeconds: 5
-  periodSeconds: 10
-  timeoutSeconds: 2
-  failureThreshold: 3
-  successThreshold: 1
+# # Liveness probe configuration
+# livenessProbe:
+#   httpGet:
+#     path: /healthz
+#     port: http
+#   initialDelaySeconds: 10
+#   periodSeconds: 10
+#   timeoutSeconds: 2
+#   failureThreshold: 3
+#   successThreshold: 1
+
+# # Readiness probe configuration
+# readinessProbe:
+#   httpGet:
+#     path: /readyz
+#     port: http
+#   initialDelaySeconds: 5
+#   periodSeconds: 10
+#   timeoutSeconds: 2
+#   failureThreshold: 3
+#   successThreshold: 1
 
 # Autoscaling configuration
 autoscaling:

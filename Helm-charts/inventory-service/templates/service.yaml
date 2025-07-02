@@ -3,13 +3,12 @@ kind: Service
 metadata:
   name: {{ include "inventory-service.fullname" . }}
   labels:
-    {{- include "inventory-service.labels" . | nindent 4 }}
+    app: inventory-service
 spec:
-  type: {{ .Values.service.type }}
+  type: NodePort
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
-      protocol: TCP
-      name: http
+    - port: 8000
+      targetPort: 8000
+      nodePort: 32724
   selector:
-    {{- include "inventory-service.selectorLabels" . | nindent 4 }}
+    app: inventory-service

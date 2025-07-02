@@ -1,10 +1,10 @@
 version: '3.8'
 
 services:
-  booking_service:
+  booking-service:
     build:
       context: ./booking_service
-    container_name: booking_service
+    container_name: booking-service
     ports:
       - "8002:8000"
     environment:
@@ -14,10 +14,10 @@ services:
     networks:
       - backend
 
-  inventory_service:
+  inventory-service:
     build:
       context: ./inventory_service
-    container_name: inventory_service
+    container_name: inventory-service
     ports:
       - "8001:8000"
     environment:
@@ -45,8 +45,8 @@ services:
       - "4317:4317"
       - "4318:4318"
     depends_on:
-      - booking_service
-      - inventory_service
+      - booking-service
+      - inventory-service
 
     networks:
       - backend

@@ -3,13 +3,12 @@ kind: Service
 metadata:
   name: {{ include "booking-service.fullname" . }}
   labels:
-    {{- include "booking-service.labels" . | nindent 4 }}
+    app: booking-service
 spec:
-  type: {{ .Values.service.type }}
+  type: NodePort
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
-      protocol: TCP
-      name: http
+    - port: 8000
+      targetPort: 8000
+      nodePort: 32725
   selector:
-    {{- include "booking-service.selectorLabels" . | nindent 4 }}
+    app: booking-service

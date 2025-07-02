@@ -126,8 +126,8 @@ helm install inventory-test Helm-charts/inventory-service --dry-run --debug
 
 **Install to your cluster:**
 ```bash
-helm install booking-test Helm-charts/booking-service
-helm install inventory-test Helm-charts/inventory-service
+helm install booking-test Helm-charts/booking-service --set env.DATABASE_URL="your_real_db_url"
+helm install inventory-test Helm-charts/inventory-service --set env.DATABASE_URL="your_real_db_url"
 ```
 
 **Run Helm tests:**
@@ -158,8 +158,7 @@ Example for production:
 Example for local development:
 ```bash
 helm install my-release . \
-  --set env[0].name=DATABASE_URL \
-  --set env[0].value=$(cat .env | grep DATABASE_URL | cut -d '=' -f2-)
+  --set env.DATABASE_URL="your_real_db_url"
 ```
 
 **.env files and any secret YAMLs should always be in your .gitignore.**
