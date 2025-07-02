@@ -165,17 +165,18 @@ A critical lesson in building production-grade microservices is the secure manag
 Example for production:
 ```yaml
 # env:
-#   - name: DATABASE_URL
-#     valueFrom:
-#       secretKeyRef:
-#         name: my-db-url-secret
-#         key: DATABASE_URL
+#   DATABASE_URL: "your_real_db_url"
+#   # Or, for Kubernetes Secret reference:
+#   # DATABASE_URL:
+#   #   valueFrom:
+#   #     secretKeyRef:
+#   #       name: my-db-url-secret
+#   #       key: DATABASE_URL
 ```
 Example for local development:
 ```bash
 helm install my-release . \
-  --set env[0].name=DATABASE_URL \
-  --set env[0].value=$(cat .env | grep DATABASE_URL | cut -d '=' -f2-)
+  --set env.DATABASE_URL="your_real_db_url"
 ```
 
 See the updated README for more details and patterns.
