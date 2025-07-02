@@ -33,15 +33,6 @@ All Python dependency management, including environment setup and Docker builds,
 
 - Install dependencies:
   ```bash
-  uv pip install <package>
-  ```
-- Create environment & install from file:
-  ```bash
-  uv venv .venv
-  uv pip install -r requirements.txt
-  ```
-- Install editable package (for development):
-  ```bash
   uv pip install -e .
   ```
 
@@ -105,6 +96,47 @@ For detailed information about each service, including API endpoints, database s
 ## Future Enhancements
 - Enforce idempotency for POST /booking to avoid duplicates.
 - Service-to-service communication via message broker (e.g., Kafka, EventBridge).
+
+## Kubernetes Helm Charts
+
+This project includes Helm charts for deploying the Booking and Inventory services to Kubernetes. The charts are located in the `Helm-charts/` directory:
+
+- `Helm-charts/booking-service/`
+- `Helm-charts/inventory-service/`
+
+### Chart Features
+- Minimal working Deployment and Service for each microservice
+- Sensible defaults for image and ports (see `values.yaml` in each chart)
+- Helm test hooks for basic connectivity testing
+- Follows Kubernetes naming conventions (uses hyphens, not underscores)
+
+### Usage
+
+**Lint the charts:**
+```bash
+helm lint Helm-charts/booking-service
+helm lint Helm-charts/inventory-service
+```
+
+**Dry-run install (shows rendered resources without deploying):**
+```bash
+helm install booking-test Helm-charts/booking-service --dry-run --debug
+helm install inventory-test Helm-charts/inventory-service --dry-run --debug
+```
+
+**Install to your cluster:**
+```bash
+helm install booking-test Helm-charts/booking-service
+helm install inventory-test Helm-charts/inventory-service
+```
+
+**Run Helm tests:**
+```bash
+helm test booking-test
+helm test inventory-test
+```
+
+See the NOTES.txt in each chart for port-forwarding and access instructions after deployment.
 
 ---
 
