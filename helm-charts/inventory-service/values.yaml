@@ -134,19 +134,18 @@ affinity: {}
 # Environment variables for the container
 # WARNING: Never commit secrets or sensitive values to version control!
 # For production, inject DATABASE_URL via a Kubernetes Secret (e.g., synced from AWS KMS/Secrets Manager):
-# env:
-#   - name: DATABASE_URL
-#     valueFrom:
-#       secretKeyRef:
-#         name: my-db-url-secret
-#         key: DATABASE_URL
 # For local development, use a .env file or --set on the CLI. Do NOT commit secrets to git!
 env: []
 # WARNING: Do not commit secrets. For local dev, use a .env file or --set env[0].name=DATABASE_URL --set env[0].value=... on the CLI
 
-env:
-  DATABASE_URL: "postgresql+asyncpg://hotel-inventory-booking_owner:npg_OrHB23tKmxSe@ep-winter-rice-ab60w8fp-pooler.eu-west-2.aws.neon.tech/hotel-inventory-booking"
-# Secrets for sensitive values (referenced from Kubernetes secrets)
+envFromSecret:
+  - name: DATABASE_URL
+    secretName: app-secret
+    secretKey: DATABASE_URL
+  - name: SENTRY_DSN
+    secretName: app-secret
+    secretKey: SENTRY_DSN
+
 secrets: []
 # - name: DB_PASSWORD
 #   secretKeyRef:

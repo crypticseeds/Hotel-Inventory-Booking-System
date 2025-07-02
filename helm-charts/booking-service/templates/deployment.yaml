@@ -20,9 +20,18 @@ spec:
           ports:
             - containerPort: 8000
           env:
-            {{- with .Values.env }}
-            {{- range $key, $value := . }}
+{{- with .Values.env }}
+{{- range $key, $value := . }}
             - name: {{ $key }}
               value: "{{ $value }}"
-            {{- end }}
-            {{- end }}
+{{- end }}
+{{- end }}
+{{- with .Values.envFromSecret }}
+{{- range . }}
+            - name: {{ .name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .secretName }}
+                  key: {{ .secretKey }}
+{{- end }}
+{{- end }}
