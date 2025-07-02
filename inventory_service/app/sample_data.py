@@ -1,9 +1,11 @@
 import random
-from faker import Faker
 from datetime import date
 from decimal import Decimal
-from .db.models import Hotel, Inventory
+
+from faker import Faker
 from sqlalchemy import select
+
+from .db.models import Hotel, Inventory
 
 fake = Faker()
 

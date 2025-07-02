@@ -1,9 +1,10 @@
-from pydantic import BaseModel, Field
 from datetime import date
 from decimal import Decimal
-from typing import Optional, Any
+from typing import Optional
+
 import httpx
 from fastapi import HTTPException
+from pydantic import BaseModel, Field
 
 
 class BookingBase(BaseModel):
@@ -66,19 +67,29 @@ async def fetch_room_price(booking):
     async with httpx.AsyncClient() as client:
         resp = await client.get(
             inventory_url,
-            params={"start_date": str(booking.arrival_date), "end_date": str(booking.arrival_date)}
+            params={
+                "start_date": str(booking.arrival_date),
+                "end_date": str(booking.arrival_date),
+            },
         )
         if resp.status_code == 200:
             inventory_list = resp.json()
             price_found = False
             for item in inventory_list:
-                if item["room_type"] == booking.room_type and str(item["date"]) == str(booking.arrival_date):
+                if item["room_type"] == booking.room_type and str(item["date"]) == str(
+                    booking.arrival_date
+                ):
                     booking_dict = booking.dict()
                     booking_dict["room_price"] = item["room_price"]
                     price_found = True
                     break
             if not price_found:
-                raise HTTPException(status_code=400, detail="Room price not found in inventory for the given hotel, room type, and date.")
+                raise HTTPException(
+                    status_code=400,
+                    detail="Room price not found in inventory for the given hotel, room type, and date.",
+                )
         else:
-            raise HTTPException(status_code=400, detail="Failed to fetch inventory for room price.")
-    return booking_dict 
+            raise HTTPException(
+                status_code=400, detail="Failed to fetch inventory for room price."
+            )
+    return booking_dict

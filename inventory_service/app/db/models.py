@@ -1,13 +1,13 @@
 from sqlalchemy import (
     Column,
-    Integer,
-    String,
     Date,
-    Numeric,
-    Index,
-    PrimaryKeyConstraint,
     ForeignKey,
     Identity,
+    Index,
+    Integer,
+    Numeric,
+    PrimaryKeyConstraint,
+    String,
 )
 from sqlalchemy.orm import declarative_base, relationship
 

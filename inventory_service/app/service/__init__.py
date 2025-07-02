@@ -1,11 +1,13 @@
-from sqlalchemy.future import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional, List
 from datetime import date
-from ..db.models import Inventory, Hotel
+from typing import List, Optional
+
+from sqlalchemy import desc
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
-from sqlalchemy import update, desc
-from sqlalchemy.exc import NoResultFound
+
+from ..db.models import Hotel, Inventory
+
 
 async def get_inventory_by_hotel(
     db: AsyncSession,

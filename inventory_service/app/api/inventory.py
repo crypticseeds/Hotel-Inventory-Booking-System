@@ -1,12 +1,14 @@
-from fastapi import APIRouter, Depends, Query, HTTPException, Body
-from typing import List, Optional
-from datetime import date
-from ..db.connection import get_db
-from ..service import get_inventory_by_hotel, adjust_inventory, get_hotel_name_by_id
-from ..schemas import Inventory, InventoryPublic
-from sqlalchemy.ext.asyncio import AsyncSession
-from pydantic import BaseModel
 import logging
+from datetime import date
+from typing import List, Optional
+
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ..db.connection import get_db
+from ..schemas import InventoryPublic
+from ..service import adjust_inventory, get_hotel_name_by_id, get_inventory_by_hotel
 
 logger = logging.getLogger(__name__)
 

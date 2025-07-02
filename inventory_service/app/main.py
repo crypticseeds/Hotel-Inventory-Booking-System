@@ -1,11 +1,13 @@
-from .monitoring import logger, resource, request_duration_histogram, request_counter, db_connection_errors_counter
-from fastapi import FastAPI, Request, Response
-from .api import inventory
-from .db.connection import engine, AsyncSessionLocal
-from .db.models import Base
-from .sample_data import populate_sample_inventory
 import time
+
+from fastapi import FastAPI, Request, Response
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
+from .api import inventory
+from .db.connection import AsyncSessionLocal, engine
+from .db.models import Base
+from .monitoring import request_counter, request_duration_histogram, resource
+from .sample_data import populate_sample_inventory
 
 app = FastAPI(
     title="Inventory Service"
@@ -27,7 +29,7 @@ async def metrics_middleware(request: Request, call_next):
         request_duration_histogram.record(duration, labels)
         request_counter.add(1, {**labels, "status_code": str(response.status_code)})
         return response
-    except Exception as e:
+    except Exception:
         duration = time.time() - start_time
         request_duration_histogram.record(duration, labels)
         request_counter.add(1, {**labels, "status_code": "500"})

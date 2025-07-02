@@ -1,9 +1,11 @@
 import os
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
+
 from dotenv import load_dotenv
-from .models import Base
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
+
 from ..monitoring import db_connection_errors_counter, resource
+from .models import Base
 
 load_dotenv()
 
@@ -28,6 +30,6 @@ async def get_db() -> AsyncSession:
     try:
         async with AsyncSessionLocal() as session:
             yield session
-    except Exception as e:
+    except Exception:
         db_connection_errors_counter.add(1, {"service": resource.attributes.get("service.name", "unknown")})
         raise 
