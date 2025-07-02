@@ -180,3 +180,17 @@ helm install my-release . \
 ```
 
 See the updated README for more details and patterns.
+
+# CI/CD Pipeline & Code Quality Update (2024-06)
+
+## GitHub Actions Matrix CI
+- A new GitHub Actions workflow runs on every push and pull request to `main`.
+- Uses a matrix build to independently test and lint both `booking_service` and `inventory_service`.
+- Each service is set up in its own working directory, with dependencies installed via UV, linted with Ruff, and tested with pytest.
+- This ensures both services are always validated in isolation, preventing cross-service issues.
+
+## SonarCloud Integration
+- SonarCloud is now integrated for automated code quality analysis, bug detection, and vulnerability scanning.
+- Every commit and PR is analyzed, and results are visible on the [SonarCloud dashboard](https://sonarcloud.io/project/overview?id=crypticseeds_Hotel-Inventory-Booking-System).
+
+---

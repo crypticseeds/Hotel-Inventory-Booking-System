@@ -12,6 +12,8 @@ This project is a microservices-based application for managing hotel inventory a
 - Loki
 - Prometheus
 - Grafana
+- Sonarcloud
+- Github Actions
 
 ## Project Architecture
 
@@ -93,6 +95,21 @@ For detailed information about each service, including API endpoints, database s
 - [Booking Service](./booking_service/README.md)
 - [Inventory Service](./inventory_service/README.md)
 
+## CI/CD & Code Quality
+
+This project uses GitHub Actions for continuous integration (CI) and SonarCloud for code quality analysis:
+
+- **GitHub Actions CI:**
+  - On every push and pull request to `main`, a matrix build runs for both `booking_service` and `inventory_service`.
+  - Each service is tested in isolation: dependencies are installed with [UV](https://docs.astral.sh/uv/), code is linted with Ruff, and tests are run with pytest.
+  - The workflow file is located at `.github/workflows/ci.yml`.
+- **SonarCloud:**
+  - Code quality, bugs, and vulnerabilities are automatically analyzed for every commit and pull request.
+  - See the live dashboard: [SonarCloud Project Overview](https://sonarcloud.io/project/overview?id=crypticseeds_Hotel-Inventory-Booking-System)
+
+---
+
+
 ## Future Enhancements
 - Enforce idempotency for POST /booking to avoid duplicates.
 - Service-to-service communication via message broker (e.g., Kafka, EventBridge).
@@ -130,11 +147,6 @@ helm install booking-test Helm-charts/booking-service --set env.DATABASE_URL="yo
 helm install inventory-test Helm-charts/inventory-service --set env.DATABASE_URL="your_real_db_url"
 ```
 
-**Run Helm tests:**
-```bash
-helm test booking-test
-helm test inventory-test
-```
 
 See the NOTES.txt in each chart for port-forwarding and access instructions after deployment.
 
