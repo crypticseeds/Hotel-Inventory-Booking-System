@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/your-org/Hotel-Inventory-Booking-System.git'
+    repoURL: 'https://github.com/crypticseeds/Hotel-Inventory-Booking-System.git'
     targetRevision: HEAD
     path: helm-charts/inventory-service  # or wherever your manifests/Helm chart is
   destination:
