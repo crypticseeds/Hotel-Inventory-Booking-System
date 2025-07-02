@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: booking-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/your-org/Hotel-Inventory-Booking-System.git'
+    targetRevision: HEAD
+    path: helm-charts/booking-service  # or wherever your manifests/Helm chart is
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: booking
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

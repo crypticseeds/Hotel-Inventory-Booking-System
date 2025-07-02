@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: hotel-inventory-booking-system
+  namespace: argocd
+spec:
+  description: Project for Hotel Inventory and Booking services
+  sourceRepos:
+    - '*'  # Allow all repos, or specify your repo URL for tighter security
+  destinations:
+    - namespace: inventory
+      server: https://kubernetes.default.svc
+    - namespace: booking
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'

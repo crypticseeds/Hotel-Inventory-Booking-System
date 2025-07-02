@@ -177,4 +177,32 @@ helm install my-release . \
 
 ---
 
-For more information on contributing, troubleshooting, or advanced configuration, see the service-specific documentation. 
+For more information on contributing, troubleshooting, or advanced configuration, see the service-specific documentation.
+
+## GitOps Deployment with ArgoCD
+
+This project supports GitOps-style Kubernetes deployments using [ArgoCD](https://argo-cd.readthedocs.io/). All ArgoCD manifests are located in the `argocd/` directory at the project root.
+
+### Directory Structure
+- `argocd/project.yaml`: Defines an ArgoCD AppProject for unified management of both services.
+- `argocd/app-inventory.yaml`: ArgoCD Application manifest for the Inventory Service.
+- `argocd/app-booking.yaml`: ArgoCD Application manifest for the Booking Service.
+
+### How to Use
+1. **Apply the AppProject**
+   ```sh
+   kubectl apply -f argocd/project.yaml
+   ```
+2. **Apply the Application Manifests**
+   ```sh
+   kubectl apply -f argocd/app-inventory.yaml
+   kubectl apply -f argocd/app-booking.yaml
+   ```
+3. **Sync and Monitor**
+   - Use the ArgoCD UI or CLI to sync and monitor both applications. Both services will be launched and managed together under the defined project.
+
+> **Note:**
+> - Update the `repoURL` and `path` fields in the Application manifests to match your repository and deployment structure.
+> - Ensure your Git repository is registered as a source in ArgoCD.
+
+For more details, see `argocd/README.md`.

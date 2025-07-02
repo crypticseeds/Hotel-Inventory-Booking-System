@@ -194,3 +194,33 @@ See the updated README for more details and patterns.
 - Every commit and PR is analyzed, and results are visible on the [SonarCloud dashboard](https://sonarcloud.io/project/overview?id=crypticseeds_Hotel-Inventory-Booking-System).
 
 ---
+
+# 8. GitOps with ArgoCD: Automated Kubernetes Deployments
+
+A recent enhancement to the project is the adoption of [ArgoCD](https://argo-cd.readthedocs.io/) for GitOps-based Kubernetes deployments. All ArgoCD manifests are organized in the `argocd/` directory at the project root.
+
+## Structure and Usage
+- `argocd/project.yaml`: Defines an AppProject to group and manage both the booking and inventory services.
+- `argocd/app-inventory.yaml` and `argocd/app-booking.yaml`: Application manifests for each service, referencing their respective Helm charts or manifests.
+
+### Deployment Workflow
+1. Apply the AppProject manifest:
+   ```sh
+   kubectl apply -f argocd/project.yaml
+   ```
+2. Apply the Application manifests:
+   ```sh
+   kubectl apply -f argocd/app-inventory.yaml
+   kubectl apply -f argocd/app-booking.yaml
+   ```
+3. Use the ArgoCD UI or CLI to sync and monitor deployments.
+
+## Benefits
+- **Declarative Deployments:** All deployment configuration is version-controlled and auditable.
+- **Unified Management:** Both services are managed together under a single project.
+- **Easy Rollbacks:** Changes can be reverted by rolling back Git commits.
+- **Visibility:** The ArgoCD UI provides real-time status and health of all managed applications.
+
+This approach fits seamlessly into the microservices architecture, ensuring reliable, automated, and observable deployments for both the booking and inventory services.
+
+---
