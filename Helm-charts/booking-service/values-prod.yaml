@@ -1,0 +1,16 @@
+replicaCount: 3
+image:
+  tag: "prod"
+service:
+  type: ClusterIP
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+podAnnotations:
+  environment: prod
+podLabels:
+  environment: prod 

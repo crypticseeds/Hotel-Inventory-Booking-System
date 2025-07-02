@@ -1,0 +1,18 @@
+replicaCount: 1
+image:
+  tag: "dev"
+service:
+  type: ClusterIP
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+podAnnotations:
+  environment: dev
+podLabels:
+  environment: dev
+# WARNING: Do not commit secrets. For local dev, use a .env file or --set env[0].name=DATABASE_URL --set env[0].value=... on the CLI
+env: [] 

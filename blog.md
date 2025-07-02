@@ -152,3 +152,30 @@ This automation ensures that rooms are returned to inventory after guests check 
 ---
 
 *Last updated: 2025-06-27*
+
+# 7. Security Best Practices: Secret Management in Microservices
+
+A critical lesson in building production-grade microservices is the secure management of secrets and sensitive configuration values (such as `DATABASE_URL`).
+
+- **Never commit secrets or sensitive values to version control.**
+- For production, always use Kubernetes secrets, Helm secrets, or an external secrets manager (e.g., AWS KMS/Secrets Manager) to inject sensitive values.
+- For local development, use a `.env` file (which is gitignored) or pass values via `--set` on the Helm CLI.
+- Reference secrets in your `values.yaml` only as comments/examples, never with real values.
+
+Example for production:
+```yaml
+# env:
+#   - name: DATABASE_URL
+#     valueFrom:
+#       secretKeyRef:
+#         name: my-db-url-secret
+#         key: DATABASE_URL
+```
+Example for local development:
+```bash
+helm install my-release . \
+  --set env[0].name=DATABASE_URL \
+  --set env[0].value=$(cat .env | grep DATABASE_URL | cut -d '=' -f2-)
+```
+
+See the updated README for more details and patterns.

@@ -138,6 +138,32 @@ helm test inventory-test
 
 See the NOTES.txt in each chart for port-forwarding and access instructions after deployment.
 
+## Security Best Practices: Secrets and Sensitive Values
+
+**Never commit secrets or sensitive values (like DATABASE_URL) to version control.**
+
+- For production, use Kubernetes secrets, Helm secrets, or an external secrets manager (e.g., AWS KMS/Secrets Manager) to inject sensitive values.
+- For local development, use a `.env` file (which is gitignored) or pass values via `--set` on the Helm CLI.
+- Reference secrets in your `values.yaml` only as comments/examples, never with real values.
+
+Example for production:
+```yaml
+# env:
+#   - name: DATABASE_URL
+#     valueFrom:
+#       secretKeyRef:
+#         name: my-db-url-secret
+#         key: DATABASE_URL
+```
+Example for local development:
+```bash
+helm install my-release . \
+  --set env[0].name=DATABASE_URL \
+  --set env[0].value=$(cat .env | grep DATABASE_URL | cut -d '=' -f2-)
+```
+
+**.env files and any secret YAMLs should always be in your .gitignore.**
+
 ---
 
 For more information on contributing, troubleshooting, or advanced configuration, see the service-specific documentation. 
