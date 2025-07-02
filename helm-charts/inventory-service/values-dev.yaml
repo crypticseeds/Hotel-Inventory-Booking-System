@@ -1,6 +1,6 @@
 replicaCount: 1
 image:
-  tag: "dev"
+  tag: "latest"
 service:
   type: ClusterIP
 resources:
