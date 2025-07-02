@@ -9,6 +9,9 @@ spec:
     repoURL: 'https://github.com/crypticseeds/Hotel-Inventory-Booking-System.git'
     targetRevision: HEAD
     path: helm-charts/booking-service  # or wherever your manifests/Helm chart is
+    helm:
+      valueFiles:
+        - values-prod.yaml
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: booking
