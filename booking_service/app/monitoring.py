@@ -59,7 +59,7 @@ class ServiceLogFilter(logging.Filter):
 root_logger.addFilter(ServiceLogFilter())
 
 # --- Tracing Setup ---
-otlp_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-collector:4317")
+otlp_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "otel-collector:4317")
 resource = Resource(attributes={SERVICE_NAME: "booking-service"})
 provider = TracerProvider(resource=resource)
 otlp_exporter = OTLPSpanExporter(endpoint=otlp_endpoint, insecure=True)
