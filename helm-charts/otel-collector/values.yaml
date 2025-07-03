@@ -1,0 +1,143 @@
+mode: daemonset
+
+image:
+  repository: otel/opentelemetry-collector-contrib
+  tag: latest
+
+# Set resource requests and limits for the collector pods
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# Set useGOMEMLIMIT to false to suppress the warning (or set a memory limit above to use it)
+useGOMEMLIMIT: false
+
+# Deploy to the 'observability' namespace (set via helm install --namespace)
+
+extraEnvs:
+  - name: GRAFANA_CLOUD_INSTANCE_ID
+    valueFrom:
+      secretKeyRef:
+        name: otel-secret
+        key: GRAFANA_CLOUD_INSTANCE_ID
+  - name: GRAFANA_CLOUD_OTLP_ENDPOINT
+    valueFrom:
+      secretKeyRef:
+        name: otel-secret
+        key: GRAFANA_CLOUD_OTLP_ENDPOINT
+  - name: GRAFANA_CLOUD_API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: otel-secret
+        key: GRAFANA_CLOUD_API_KEY
+
+config:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+    hostmetrics:
+      collection_interval: 10s
+      scrapers:
+        cpu: {}
+        memory: {}
+        disk: {}
+        filesystem: {}
+        network: {}
+
+  processors:
+    batch:
+      timeout: 60s
+      send_batch_size: 1000
+    resourcedetection:
+      detectors: ["env", "docker", "system"]
+      override: false
+    transform/drop_unneeded_resource_attributes:
+      error_mode: ignore
+      trace_statements:
+        - context: resource
+          statements:
+            - delete_key(attributes, "k9s.pod.start_time")
+            - delete_key(attributes, "os.description")
+            - delete_key(attributes, "os.type")
+            - delete_key(attributes, "process.command_args")
+            - delete_key(attributes, "process.executable.path")
+            - delete_key(attributes, "process.pid")
+            - delete_key(attributes, "process.runtime.description")
+            - delete_key(attributes, "process.runtime.name")
+            - delete_key(attributes, "process.runtime.version")
+      metric_statements:
+        - context: resource
+          statements:
+            - delete_key(attributes, "k9s.pod.start_time")
+            - delete_key(attributes, "os.description")
+            - delete_key(attributes, "os.type")
+            - delete_key(attributes, "process.command_args")
+            - delete_key(attributes, "process.executable.path")
+            - delete_key(attributes, "process.pid")
+            - delete_key(attributes, "process.runtime.description")
+            - delete_key(attributes, "process.runtime.name")
+            - delete_key(attributes, "process.runtime.version")
+      log_statements:
+        - context: resource
+          statements:
+            - delete_key(attributes, "k9s.pod.start_time")
+            - delete_key(attributes, "os.description")
+            - delete_key(attributes, "os.type")
+            - delete_key(attributes, "process.command_args")
+            - delete_key(attributes, "process.executable.path")
+            - delete_key(attributes, "process.pid")
+            - delete_key(attributes, "process.runtime.description")
+            - delete_key(attributes, "process.runtime.name")
+            - delete_key(attributes, "process.runtime.version")
+    transform/add_resource_attributes_as_metric_attributes:
+      error_mode: ignore
+      metric_statements:
+        - context: datapoint
+          statements:
+            - set(attributes["deployment.environment"], resource.attributes["deployment.environment"])
+            - set(attributes["service.version"], resource.attributes["service.version"])
+
+  exporters:
+    otlphttp/grafana_cloud:
+      endpoint: "${env:GRAFANA_CLOUD_OTLP_ENDPOINT}"
+      auth:
+        authenticator: basicauth/grafana_cloud
+
+  extensions:
+    health_check: {}
+    basicauth/grafana_cloud:
+      client_auth:
+        username: "${env:GRAFANA_CLOUD_INSTANCE_ID}"
+        password: "${env:GRAFANA_CLOUD_API_KEY}"
+
+  connectors:
+    grafanacloud:
+      host_identifiers: ["host.name"]
+
+  service:
+    extensions: [health_check, basicauth/grafana_cloud]
+    pipelines:
+      traces:
+        receivers: [otlp]
+        processors: [resourcedetection, transform/drop_unneeded_resource_attributes, batch]
+        exporters: [otlphttp/grafana_cloud, grafanacloud]
+      metrics:
+        receivers: [otlp, hostmetrics]
+        processors: [resourcedetection, transform/drop_unneeded_resource_attributes, transform/add_resource_attributes_as_metric_attributes, batch]
+        exporters: [otlphttp/grafana_cloud]
+      metrics/grafanacloud:
+        receivers: [grafanacloud]
+        processors: [batch]
+        exporters: [otlphttp/grafana_cloud]
+      logs:
+        receivers: [otlp]
+        processors: [resourcedetection, transform/drop_unneeded_resource_attributes, batch]
+        exporters: [otlphttp/grafana_cloud] 
