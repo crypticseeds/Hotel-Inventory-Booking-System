@@ -43,4 +43,36 @@ jobs:
       - name: Run tests (pytest)
         run: |
           source .venv/bin/activate
-          pytest || echo 'No tests found, skipping.' 
+          pytest || echo 'No tests found, skipping.'
+
+  docker-build-and-push:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [booking_service, inventory_service]
+    defaults:
+      run:
+        working-directory: ${{ matrix.service }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ matrix.service }}/Dockerfile
+          push: true
+          tags: |
+            ${{ matrix.image_name }}:latest
+            ${{ matrix.image_name }}:${{ github.sha }} 
