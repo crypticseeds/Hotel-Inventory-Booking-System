@@ -50,7 +50,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [booking_service, inventory_service]
+        include:
+          - service: booking_service
+            image_name: crypticseeds/hotel-inventory-booking-system-booking-service
+          - service: inventory_service
+            image_name: crypticseeds/hotel-inventory-booking-system-inventory-service
     defaults:
       run:
         working-directory: ${{ matrix.service }}
