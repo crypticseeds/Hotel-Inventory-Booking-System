@@ -61,6 +61,25 @@ ports:
     servicePort: 13133
     protocol: TCP
 
+# Liveness and Readiness Probes
+livenessProbe:
+  httpGet:
+    port: 13133
+    path: /health
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    port: 13133
+    path: /health
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3 
+
 config:
   receivers:
     otlp:
@@ -167,4 +186,4 @@ config:
       logs:
         receivers: [otlp]
         processors: [resourcedetection, transform/drop_unneeded_resource_attributes, batch]
-        exporters: [otlphttp/grafana_cloud] 
+        exporters: [otlphttp/grafana_cloud]
