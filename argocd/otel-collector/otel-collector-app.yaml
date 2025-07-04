@@ -6,14 +6,20 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://open-telemetry.github.io/opentelemetry-helm-charts
-    chart: opentelemetry-collector
-    targetRevision: 0.127.2 
-    helm:
-      valueFiles:
-        - values.yaml
+    - repoURL: https://open-telemetry.github.io/opentelemetry-helm-charts
+      chart: opentelemetry-collector
+      targetRevision: 0.127.2 
+      helm:
+        valueFiles:
+          - $values/argocd/otel-collector/values.yaml
+    - repoURL: https://github.com/crypticseeds/Hotel-Inventory-Booking-System.git
+      targetRevision: HEAD
+      path: argocd/otel-collector
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: observability
   syncPolicy:
-    automated: {} 
+    automated:
+      prune: true
+      selfHeal: true

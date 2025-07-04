@@ -6,7 +6,7 @@ mode: daemonset
 image:
   repository: otel/opentelemetry-collector-contrib
   pullPolicy: IfNotPresent
-  tag: latest
+  tag: 0.127.2
 
 # Set resource requests and limits for the collector pods
 resources:
@@ -116,7 +116,8 @@ config:
         authenticator: basicauth/grafana_cloud
 
   extensions:
-    health_check: {}
+    health_check:
+      endpoint: 0.0.0.0:13133
     basicauth/grafana_cloud:
       client_auth:
         username: "${env:GRAFANA_CLOUD_INSTANCE_ID}"
