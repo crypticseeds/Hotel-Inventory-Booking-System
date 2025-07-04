@@ -39,7 +39,7 @@ async def read_bookings(db: AsyncSession = Depends(get_db)):
     try:
         result = await db.execute(select(BookingModel))
         bookings = result.scalars().all()
-        inventory_service_url = "http://inventory_service:8000/inventory"
+        inventory_service_url = "inventory-service.inventory.svc.cluster.local:8000/inventory"
         booking_list = []
         async with httpx.AsyncClient() as client:
             for db_booking in bookings:
@@ -107,7 +107,7 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
         booking_dict["is_weekend"] = is_weekend
 
         # New inventory logic: fetch inventory for hotel and room type, ignore date
-        inventory_service_url = "http://inventory_service:8000/inventory"
+        inventory_service_url = "inventory-service.inventory.svc.cluster.local:8000/inventory"
         inventory_url = f"{inventory_service_url}/{booking.hotel_id}"
         async with httpx.AsyncClient() as client:
             resp = await client.get(inventory_url)
@@ -243,7 +243,7 @@ async def get_booking_by_id(
             raise HTTPException(status_code=404, detail="Booking not found")
 
         # Fetch hotel_name from inventory service
-        inventory_service_url = "http://inventory_service:8000/inventory"
+        inventory_service_url = "inventory-service.inventory.svc.cluster.local:8000/inventory"
         async with httpx.AsyncClient() as client:
             hotel_name_url = f"{inventory_service_url}/hotel_name/{db_booking.hotel_id}"
             hotel_resp = await client.get(hotel_name_url, timeout=5.0)
@@ -385,7 +385,7 @@ async def update_booking(
         await db.refresh(db_booking)
 
         # Fetch hotel_name from inventory service
-        inventory_service_url = "http://inventory_service:8000/inventory"
+        inventory_service_url = "inventory-service.inventory.svc.cluster.local:8000/inventory"
         async with httpx.AsyncClient() as client:
             hotel_name_url = f"{inventory_service_url}/hotel_name/{db_booking.hotel_id}"
             hotel_resp = await client.get(hotel_name_url, timeout=5.0)
