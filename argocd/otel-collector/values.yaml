@@ -39,6 +39,21 @@ extraEnvs:
         name: otel-secret
         key: GRAFANA_CLOUD_API_KEY
 
+# Service configuration
+service:
+  enabled: true
+  type: ClusterIP
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318
+    - name: health
+      port: 13133
+      targetPort: 13133
+
 config:
   receivers:
     otlp:
