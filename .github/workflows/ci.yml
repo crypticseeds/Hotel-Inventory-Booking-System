@@ -74,9 +74,13 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ${{ matrix.service }}
           file: ${{ matrix.service }}/Dockerfile
           push: true
           tags: |
             ${{ matrix.image_name }}:latest
-            ${{ matrix.image_name }}:${{ github.sha }} 
+            ${{ matrix.image_name }}:${{ github.sha }}
+
+      # Optionally, you can add a step to verify the image was pushed successfully
+      # - name: Inspect pushed image
+      #   run: docker pull ${{ matrix.image_name }}:latest 
