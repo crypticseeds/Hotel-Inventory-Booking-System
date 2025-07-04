@@ -301,7 +301,7 @@ async def cancel_booking(
         await db.refresh(db_booking)
 
         # Return one room to inventory (for the entire stay)
-        inventory_service_url = "http://inventory_service:8000/inventory"
+        inventory_service_url = "inventory-service.inventory.svc.cluster.local:8000/inventory"
         adjust_payload = {
             "room_type": db_booking.room_type,
             "date": str(db_booking.arrival_date),
