@@ -5,10 +5,10 @@ metadata:
   namespace: argocd
 spec:
   project: default
-  source:
+  sources:
     - repoURL: https://open-telemetry.github.io/opentelemetry-helm-charts
       chart: opentelemetry-collector
-      targetRevision: 0.127.2 
+      targetRevision: 0.128.0
       helm:
         valueFiles:
           - $values/argocd/otel-collector/values.yaml

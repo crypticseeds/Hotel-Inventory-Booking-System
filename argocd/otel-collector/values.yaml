@@ -6,7 +6,7 @@ mode: daemonset
 image:
   repository: otel/opentelemetry-collector-contrib
   pullPolicy: IfNotPresent
-  tag: 0.127.2
+  tag: 0.128.0
 
 # Set resource requests and limits for the collector pods
 resources:
