@@ -19,6 +19,8 @@ from ..schemas import Booking, BookingCreate, BookingUpdate
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+INVENTORY_SERVICE_URL = "https://inventory-service.inventory.svc.cluster.local:8000/inventory"
+
 router = APIRouter(
     prefix="/bookings",
     tags=["bookings"],
@@ -39,13 +41,12 @@ async def read_bookings(db: AsyncSession = Depends(get_db)):
     try:
         result = await db.execute(select(BookingModel))
         bookings = result.scalars().all()
-        inventory_service_url = "https://inventory-service.inventory.svc.cluster.local:8000/inventory"
         booking_list = []
         async with httpx.AsyncClient() as client:
             for db_booking in bookings:
                 hotel_name = None
                 hotel_name_url = (
-                    f"{inventory_service_url}/hotel_name/{db_booking.hotel_id}"
+                    f"{INVENTORY_SERVICE_URL}/hotel_name/{db_booking.hotel_id}"
                 )
                 try:
                     hotel_resp = await client.get(hotel_name_url, timeout=5.0)
@@ -107,8 +108,7 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
         booking_dict["is_weekend"] = is_weekend
 
         # New inventory logic: fetch inventory for hotel and room type, ignore date
-        inventory_service_url = "https://inventory-service.inventory.svc.cluster.local:8000/inventory"
-        inventory_url = f"{inventory_service_url}/{booking.hotel_id}"
+        inventory_url = f"{INVENTORY_SERVICE_URL}/{booking.hotel_id}"
         async with httpx.AsyncClient() as client:
             resp = await client.get(inventory_url)
             if resp.status_code == 200:
@@ -173,7 +173,7 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
             "num_rooms": 1,
         }
         async with httpx.AsyncClient() as client:
-            adjust_url = f"{inventory_service_url}/{booking.hotel_id}/adjust"
+            adjust_url = f"{INVENTORY_SERVICE_URL}/{booking.hotel_id}/adjust"
             try:
                 resp = await client.post(adjust_url, json=adjust_payload, timeout=5.0)
                 if resp.status_code != 200:
@@ -185,7 +185,7 @@ async def create_booking(booking: BookingCreate, db: AsyncSession = Depends(get_
 
         # Fetch hotel_name from inventory service
         async with httpx.AsyncClient() as client:
-            hotel_name_url = f"{inventory_service_url}/hotel_name/{db_booking.hotel_id}"
+            hotel_name_url = f"{INVENTORY_SERVICE_URL}/hotel_name/{db_booking.hotel_id}"
             hotel_resp = await client.get(hotel_name_url, timeout=5.0)
             if hotel_resp.status_code == 200:
                 hotel_name = hotel_resp.json().get("hotel_name")
@@ -243,9 +243,8 @@ async def get_booking_by_id(
             raise HTTPException(status_code=404, detail="Booking not found")
 
         # Fetch hotel_name from inventory service
-        inventory_service_url = "https://inventory-service.inventory.svc.cluster.local:8000/inventory"
         async with httpx.AsyncClient() as client:
-            hotel_name_url = f"{inventory_service_url}/hotel_name/{db_booking.hotel_id}"
+            hotel_name_url = f"{INVENTORY_SERVICE_URL}/hotel_name/{db_booking.hotel_id}"
             hotel_resp = await client.get(hotel_name_url, timeout=5.0)
             if hotel_resp.status_code == 200:
                 hotel_name = hotel_resp.json().get("hotel_name")
@@ -301,14 +300,13 @@ async def cancel_booking(
         await db.refresh(db_booking)
 
         # Return one room to inventory (for the entire stay)
-        inventory_service_url = "https://inventory-service.inventory.svc.cluster.local:8000/inventory"
         adjust_payload = {
             "room_type": db_booking.room_type,
             "date": str(db_booking.arrival_date),
             "num_rooms": -1,
         }
         async with httpx.AsyncClient() as client:
-            adjust_url = f"{inventory_service_url}/{db_booking.hotel_id}/adjust"
+            adjust_url = f"{INVENTORY_SERVICE_URL}/{db_booking.hotel_id}/adjust"
             try:
                 resp = await client.post(adjust_url, json=adjust_payload, timeout=5.0)
                 if resp.status_code != 200:
@@ -320,7 +318,7 @@ async def cancel_booking(
 
         # Fetch hotel_name from inventory service
         async with httpx.AsyncClient() as client:
-            hotel_name_url = f"{inventory_service_url}/hotel_name/{db_booking.hotel_id}"
+            hotel_name_url = f"{INVENTORY_SERVICE_URL}/hotel_name/{db_booking.hotel_id}"
             hotel_resp = await client.get(hotel_name_url, timeout=5.0)
             if hotel_resp.status_code == 200:
                 hotel_name = hotel_resp.json().get("hotel_name")
@@ -385,9 +383,8 @@ async def update_booking(
         await db.refresh(db_booking)
 
         # Fetch hotel_name from inventory service
-        inventory_service_url = "https://inventory-service.inventory.svc.cluster.local:8000/inventory"
         async with httpx.AsyncClient() as client:
-            hotel_name_url = f"{inventory_service_url}/hotel_name/{db_booking.hotel_id}"
+            hotel_name_url = f"{INVENTORY_SERVICE_URL}/hotel_name/{db_booking.hotel_id}"
             hotel_resp = await client.get(hotel_name_url, timeout=5.0)
             if hotel_resp.status_code == 200:
                 hotel_name = hotel_resp.json().get("hotel_name")
