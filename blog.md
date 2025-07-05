@@ -224,3 +224,22 @@ A recent enhancement to the project is the adoption of [ArgoCD](https://argo-cd.
 This approach fits seamlessly into the microservices architecture, ensuring reliable, automated, and observable deployments for both the booking and inventory services.
 
 ---
+
+# 9. Secure and Encrypted Service-to-Service Communication with Linkerd
+
+A major security and reliability enhancement in this project is the adoption of Linkerd as a service mesh for all internal service-to-service communication.
+
+- **Automatic mTLS Encryption:** With Linkerd, all traffic between services is automatically encrypted using mutual TLS (mTLS), ensuring that sensitive data cannot be intercepted or tampered with, even within the cluster.
+- **Zero-Trust Networking:** Linkerd enforces strict identity and authentication for every service, preventing unauthorized access and lateral movement within the cluster.
+- **Observability:** Linkerd provides detailed metrics and tracing for all service-to-service calls, making it easy to monitor, debug, and optimize microservice interactions.
+- **Simple Integration:** By adding the annotation `linkerd.io/inject: "enabled"` to each deployment (now default in our Helm charts), Linkerd sidecars are automatically injected, requiring no code changes to the services themselves.
+
+**Benefits:**
+- Strong, automatic encryption for all internal traffic
+- Improved compliance and security posture
+- Enhanced visibility into service communication patterns
+- Reduced risk of data breaches or misconfigurations
+
+This approach ensures that the Hotel Inventory and Booking System is secure by default, with best-in-class service-to-service protection and observability.
+
+---

@@ -14,6 +14,7 @@ This project is a microservices-based application for managing hotel inventory a
 - Grafana
 - Sonarcloud
 - Github Actions
+- Linkered
 
 ## Project Architecture
 
@@ -126,6 +127,9 @@ This project includes Helm charts for deploying the Booking and Inventory servic
 - Sensible defaults for image and ports (see `values.yaml` in each chart)
 - Helm test hooks for basic connectivity testing
 - Follows Kubernetes naming conventions (uses hyphens, not underscores)
+- **Built-in support for Linkerd service mesh:**
+  - Each service's deployment includes the annotation `linkerd.io/inject: "enabled"` by default (configurable via `values.yaml`).
+  - This enables automatic Linkerd sidecar injection, providing secure, encrypted (mTLS) service-to-service communication, zero-trust networking, and detailed observability for all traffic between services.
 
 ### Usage
 

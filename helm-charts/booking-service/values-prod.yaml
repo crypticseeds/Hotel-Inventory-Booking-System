@@ -1,6 +1,6 @@
 replicaCount: 3
 image:
-  tag: "a3687c211c8eab87054aee097daded8461d1f88a"
+  tag: "826ad8839f22bedf7aff0829579f3704458e123a"
 service:
   type: ClusterIP
 resources:
