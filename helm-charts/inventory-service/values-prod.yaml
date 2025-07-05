@@ -12,5 +12,6 @@ resources:
     memory: 256Mi
 podAnnotations:
   environment: prod
+  linkerd.io/inject: "enabled"
 podLabels:
   environment: prod 

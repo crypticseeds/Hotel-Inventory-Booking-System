@@ -13,6 +13,10 @@ spec:
     metadata:
       labels:
         app: booking-service
+{{- with .Values.podAnnotations }}
+      annotations:
+{{ toYaml . | nindent 8 }}
+{{- end }}
     spec:
       containers:
         - name: booking-service

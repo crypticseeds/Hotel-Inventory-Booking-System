@@ -25,7 +25,8 @@ serviceAccount:
   name: ""                     # Name of the service account to use (if not set, generated)
 
 # Pod-level annotations and labels
-podAnnotations: {}               # Annotations to add to the pod
+podAnnotations:
+  linkerd.io/inject: "enabled"
 podLabels: {}                    # Labels to add to the pod
 
 # Pod security context

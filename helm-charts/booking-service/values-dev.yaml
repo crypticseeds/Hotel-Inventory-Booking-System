@@ -12,6 +12,7 @@ resources:
     memory: 64Mi
 podAnnotations:
   environment: dev
+  linkerd.io/inject: "enabled"
 podLabels:
   environment: dev
 # WARNING: Do not commit secrets. For local dev, use a .env file or --set env[0].name=DATABASE_URL --set env[0].value=... on the CLI

@@ -79,7 +79,7 @@ def return_rooms_after_checkout():
             bookings = result.scalars().all()
             for booking in bookings:
                 # Call inventory service to increment available_rooms
-                inventory_service_url = "http://inventory-service.inventory.svc.cluster.local:8000"
+                inventory_service_url = "https://inventory-service.inventory.svc.cluster.local:8000"
                 adjust_url = f"{inventory_service_url}/{booking.hotel_id}/adjust"
                 adjust_payload = {
                     "room_type": booking.room_type,
