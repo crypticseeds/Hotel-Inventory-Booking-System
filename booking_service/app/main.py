@@ -1,5 +1,6 @@
 import time
 from datetime import date as dt_date
+# import os
 
 import httpx
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -33,6 +34,35 @@ app.include_router(booking.router)
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Booking Service"}
+
+
+# @app.get("/pricing/{hotel_id}")
+# async def get_dynamic_pricing(hotel_id: int, room_type: str = "Standard", lead_time: int = 30):
+#     """Get dynamic pricing from ML API"""
+#     pricing_api_url = os.getenv('PRICING_API_URL', 'https://your-api-gateway-url/pricing')
+    
+#     async with httpx.AsyncClient() as client:
+#         try:
+#             response = await client.post(
+#                 pricing_api_url,
+#                 json={
+#                     'hotel_id': hotel_id,
+#                     'room_type': room_type,
+#                     'lead_time': lead_time,
+#                     'stay_length': 2,
+#                     'adults': 2,
+#                     'children': 0
+#                 },
+#                 timeout=5.0
+#             )
+            
+#             if response.status_code == 200:
+#                 return response.json()
+#             else:
+#                 return {"error": "Pricing service unavailable", "fallback_price": 100.0}
+                
+#         except Exception as e:
+#             return {"error": str(e), "fallback_price": 100.0}
 
 
 @app.middleware("http")

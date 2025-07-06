@@ -32,4 +32,20 @@ output "secrets_manager_arn" {
 
 output "iam_role_arn" {
   value = module.iam.role_arn
+}
+
+output "notebook_instance_name" {
+  value = module.sagemaker.notebook_instance_name
+}
+
+output "rest_api_id" {
+  value = module.api_gateway.rest_api_id
+}
+
+output "db_instance_endpoint" {
+  value = module.rds.db_instance_endpoint
+}
+
+output "db_instance_identifier" {
+  value = module.rds.db_instance_identifier
 } 

@@ -41,4 +41,19 @@ module "secrets_manager" {
 module "iam" {
   source = "../../modules/iam"
   # Add IAM variables here
+}
+
+module "sagemaker" {
+  source = "../../modules/sagemaker"
+  # Add SageMaker variables here
+}
+
+module "api_gateway" {
+  source = "../../modules/api_gateway"
+  # Add API Gateway variables here
+}
+
+module "rds" {
+  source = "../../modules/rds"
+  # Add RDS variables here
 } 
