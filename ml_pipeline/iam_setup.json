@@ -1,0 +1,28 @@
+{
+  "sagemaker_execution_role": {
+    "role_name": "SageMakerExecutionRole",
+    "policies": [
+      "arn:aws:iam::aws:policy/AmazonSageMakerFullAccess",
+      "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+    ]
+  },
+  "lambda_execution_role": {
+    "role_name": "LambdaPricingRole", 
+    "policies": [
+      "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+      "arn:aws:iam::aws:policy/AmazonSageMakerReadOnly"
+    ],
+    "custom_policy": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "sagemaker:InvokeEndpoint"
+          ],
+          "Resource": "arn:aws:sagemaker:*:*:endpoint/hotel-pricing-endpoint"
+        }
+      ]
+    }
+  }
+}
