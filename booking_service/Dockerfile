@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM python:3.14.1-slim AS base
+FROM python:3.14.3-slim AS base
 
 # Use a separate stage to get the uv binary
 FROM ghcr.io/astral-sh/uv:latest AS uv-builder
